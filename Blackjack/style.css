@@ -1,0 +1,73 @@
+body {
+  margin: 0;
+  font-family: 'Trebuchet MS', sans-serif;
+  background: radial-gradient(circle at center, #0a4f1a, #022b0d);
+  color: white;
+  text-align: center;
+}
+
+.table {
+  padding: 20px;
+}
+
+h1 {
+  letter-spacing: 3px;
+}
+
+.bankroll {
+  font-size: 20px;
+  margin: 10px 0;
+}
+
+.bet-area input {
+  width: 80px;
+  padding: 5px;
+  text-align: center;
+}
+
+button {
+  padding: 8px 16px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  transform: scale(1.1);
+}
+
+.cards {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+  min-height: 120px;
+}
+
+.card {
+  width: 70px;
+  height: 100px;
+  background: white;
+  color: black;
+  border-radius: 8px;
+  margin: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  font-weight: bold;
+  animation: deal 0.4s ease forwards;
+}
+
+@keyframes deal {
+  from { transform: translateY(-50px) rotate(-10deg); opacity: 0; }
+  to { transform: translateY(0) rotate(0); opacity: 1; }
+}
+
+.message {
+  margin-top: 15px;
+  font-size: 22px;
+  font-weight: bold;
+}
