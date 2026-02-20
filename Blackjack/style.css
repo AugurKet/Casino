@@ -1,94 +1,97 @@
 body {
-  margin: 0;
+  margin:0;
   font-family: 'Trebuchet MS', sans-serif;
-  background: radial-gradient(circle at center, #0b5e20, #022b0d);
-  color: white;
-  text-align: center;
+  background: radial-gradient(circle at center, #0b001f, #000);
+  color:#0ff;
+  text-align:center;
 }
 
-.table {
-  padding: 20px;
-}
-
-h1 {
-  letter-spacing: 3px;
+.neon-title {
+  font-size:32px;
+  text-shadow:0 0 10px #0ff,0 0 20px #0ff,0 0 40px #0ff;
 }
 
 .bankroll {
-  font-size: 20px;
-  margin: 10px 0;
+  font-size:20px;
+  margin:10px;
+  color:#ff0;
+  text-shadow:0 0 10px #ff0;
 }
 
-.bet-area input {
-  width: 80px;
-  padding: 5px;
-  text-align: center;
+.chip-area {
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  margin:15px 0;
+}
+
+.chip {
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  background:#111;
+  border:3px solid #f0f;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  cursor:pointer;
+  box-shadow:0 0 10px #f0f;
+  transition:0.2s;
+}
+
+.chip:hover {
+  transform:scale(1.2);
+}
+
+.bet-display {
+  margin:10px;
 }
 
 button {
-  padding: 8px 16px;
-  margin: 5px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.2s ease;
+  padding:8px 14px;
+  margin:5px;
+  background:#111;
+  color:#0ff;
+  border:1px solid #0ff;
+  border-radius:5px;
+  cursor:pointer;
+  box-shadow:0 0 8px #0ff;
 }
 
 button:hover {
-  transform: scale(1.1);
+  background:#0ff;
+  color:#000;
 }
 
 .cards {
-  display: flex;
-  justify-content: center;
-  margin: 10px 0;
-  min-height: 120px;
+  display:flex;
+  justify-content:center;
+  min-height:120px;
+  margin:10px;
 }
 
 .card {
-  width: 70px;
-  height: 100px;
-  border-radius: 8px;
-  margin: 5px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 22px;
-  font-weight: bold;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.6s;
+  width:70px;
+  height:100px;
+  background:#111;
+  border:2px solid #0ff;
+  margin:5px;
+  border-radius:8px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:22px;
+  box-shadow:0 0 10px #0ff;
+  animation:deal 0.4s ease;
 }
 
-.card-inner {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  backface-visibility: hidden;
-  border-radius: 8px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.front {
-  background: white;
-  color: black;
-}
-
-.back {
-  background: linear-gradient(45deg, #222, #444);
-  transform: rotateY(180deg);
-  color: white;
-}
-
-.flipped {
-  transform: rotateY(180deg);
+@keyframes deal {
+  from { transform:translateY(-40px); opacity:0; }
+  to { transform:translateY(0); opacity:1; }
 }
 
 .message {
-  margin-top: 15px;
-  font-size: 22px;
-  font-weight: bold;
+  margin-top:15px;
+  font-size:20px;
+  text-shadow:0 0 10px #0ff;
 }
