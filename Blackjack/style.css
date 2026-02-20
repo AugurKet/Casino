@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: 'Trebuchet MS', sans-serif;
-  background: radial-gradient(circle at center, #0a4f1a, #022b0d);
+  background: radial-gradient(circle at center, #0b5e20, #022b0d);
   color: white;
   text-align: center;
 }
@@ -49,8 +49,6 @@ button:hover {
 .card {
   width: 70px;
   height: 100px;
-  background: white;
-  color: black;
   border-radius: 8px;
   margin: 5px;
   display: flex;
@@ -58,12 +56,35 @@ button:hover {
   align-items: center;
   font-size: 22px;
   font-weight: bold;
-  animation: deal 0.4s ease forwards;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
 }
 
-@keyframes deal {
-  from { transform: translateY(-50px) rotate(-10deg); opacity: 0; }
-  to { transform: translateY(0) rotate(0); opacity: 1; }
+.card-inner {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.front {
+  background: white;
+  color: black;
+}
+
+.back {
+  background: linear-gradient(45deg, #222, #444);
+  transform: rotateY(180deg);
+  color: white;
+}
+
+.flipped {
+  transform: rotateY(180deg);
 }
 
 .message {
