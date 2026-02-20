@@ -3,6 +3,8 @@ let playerHand = [];
 let dealerHand = [];
 let chips = 500;
 let bet = 0;
+let dealerHidden = true;
+let gameActive = false;
 
 const suits = ["♠","♥","♦","♣"];
 const values = [
@@ -62,20 +64,37 @@ function calculateScore(hand) {
 }
 
 function render() {
-  renderHand(playerHand, "playerCards");
-  renderHand(dealerHand, "dealerCards");
+  renderHand(playerHand, "playerCards", false);
+  renderHand(dealerHand, "dealerCards", dealerHidden);
   document.getElementById("playerScore").innerText = calculateScore(playerHand);
+  document.getElementById("dealerScore").innerText =
+    dealerHidden ? "?" : calculateScore(dealerHand);
 }
 
-function renderHand(hand, elementId) {
+function renderHand(hand, elementId, hideSecond) {
   const container = document.getElementById(elementId);
   container.innerHTML = "";
-  for (let card of hand) {
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerText = card.name + card.suit;
-    container.appendChild(div);
-  }
+  hand.forEach((card, index) => {
+    const cardDiv = document.createElement("div");
+    cardDiv.className = "card";
+
+    const front = document.createElement("div");
+    front.className = "card-inner front";
+    front.innerText = card.name + card.suit;
+
+    const back = document.createElement("div");
+    back.className = "card-inner back";
+    back.innerText = "🂠";
+
+    cardDiv.appendChild(front);
+    cardDiv.appendChild(back);
+
+    if (hideSecond && index === 1) {
+      cardDiv.classList.add("flipped");
+    }
+
+    container.appendChild(cardDiv);
+  });
 }
 
 function updateChips() {
@@ -84,6 +103,8 @@ function updateChips() {
 }
 
 function startGame() {
+  if (gameActive) return;
+
   bet = parseInt(document.getElementById("betAmount").value);
   if (bet > chips || bet <= 0) return alert("Invalid Bet");
 
@@ -92,6 +113,9 @@ function startGame() {
 
   playerHand = [];
   dealerHand = [];
+  dealerHidden = true;
+  gameActive = true;
+
   createDeck();
 
   drawCard(playerHand);
@@ -101,9 +125,16 @@ function startGame() {
 
   render();
 
-  document.getElementById("hitBtn").disabled = false;
-  document.getElementById("standBtn").disabled = false;
-  document.getElementById("doubleBtn").disabled = false;
+  if (calculateScore(playerHand) === 21) {
+    dealerHidden = false;
+    chips += bet * 2.5;
+    updateChips();
+    document.getElementById("message").innerText = "🃏 BLACKJACK! 3:2 Payout!";
+    gameActive = false;
+    return;
+  }
+
+  toggleButtons(true);
   document.getElementById("message").innerText = "";
 }
 
@@ -114,10 +145,21 @@ function hit() {
 }
 
 function stand() {
-  while (calculateScore(dealerHand) < 17) {
-    drawCard(dealerHand);
-  }
-  endGame();
+  dealerHidden = false;
+  render();
+  dealerPlay();
+}
+
+function dealerPlay() {
+  let interval = setInterval(() => {
+    if (calculateScore(dealerHand) < 17) {
+      drawCard(dealerHand);
+      render();
+    } else {
+      clearInterval(interval);
+      endGame();
+    }
+  }, 700);
 }
 
 function doubleDown() {
@@ -130,15 +172,12 @@ function doubleDown() {
 }
 
 function endGame() {
-  document.getElementById("hitBtn").disabled = true;
-  document.getElementById("standBtn").disabled = true;
-  document.getElementById("doubleBtn").disabled = true;
+  toggleButtons(false);
+  dealerHidden = false;
+  render();
 
   let playerScore = calculateScore(playerHand);
   let dealerScore = calculateScore(dealerHand);
-
-  document.getElementById("dealerScore").innerText = dealerScore;
-
   let msg = "";
 
   if (playerScore > 21) {
@@ -155,6 +194,13 @@ function endGame() {
 
   updateChips();
   document.getElementById("message").innerText = msg;
+  gameActive = false;
+}
+
+function toggleButtons(state) {
+  document.getElementById("hitBtn").disabled = !state;
+  document.getElementById("standBtn").disabled = !state;
+  document.getElementById("doubleBtn").disabled = !state;
 }
 
 document.getElementById("dealBtn").addEventListener("click", startGame);
