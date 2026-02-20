@@ -3,45 +3,56 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blackjack Pro</title>
+<title>Blackjack Neon Casino</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="table">
-  <h1>♠ BLACKJACK PRO ♣</h1>
 
-  <div class="bankroll">
-    Bankroll: <span id="chips">500</span> Chips
+<h1 class="neon-title">♠ BLACKJACK NEON ♣</h1>
+
+<div class="bankroll">
+💰 Bankroll: <span id="chips">500</span>
+</div>
+
+<div class="chip-area">
+<div class="chip" data-value="10">10</div>
+<div class="chip" data-value="25">25</div>
+<div class="chip" data-value="50">50</div>
+<div class="chip" data-value="100">100</div>
+</div>
+
+<div class="bet-display">
+Current Bet: <span id="betDisplay">0</span>
+<button id="clearBet">Clear</button>
+<button id="dealBtn">Deal</button>
+</div>
+
+<div class="game-area">
+  <div class="dealer">
+    <h2>Dealer</h2>
+    <div id="dealerCards" class="cards"></div>
+    <div id="dealerScore"></div>
   </div>
 
-  <div class="bet-area">
-    Bet:
-    <input type="number" id="betAmount" min="10" value="50">
-    <button id="dealBtn">Deal</button>
+  <div class="player">
+    <h2>Player</h2>
+    <div id="playerCards" class="cards"></div>
+    <div id="playerScore"></div>
   </div>
+</div>
 
-  <div class="game-area">
-    <div class="dealer">
-      <h2>Dealer</h2>
-      <div id="dealerCards" class="cards"></div>
-      <div id="dealerScore"></div>
-    </div>
+<div class="controls">
+<button id="hitBtn" disabled>Hit</button>
+<button id="standBtn" disabled>Stand</button>
+<button id="doubleBtn" disabled>Double</button>
+<button id="splitBtn" disabled>Split</button>
+<button id="insuranceBtn" disabled>Insurance</button>
+</div>
 
-    <div class="player">
-      <h2>Player</h2>
-      <div id="playerCards" class="cards"></div>
-      <div id="playerScore"></div>
-    </div>
-  </div>
+<div id="message" class="message"></div>
 
-  <div class="controls">
-    <button id="hitBtn" disabled>Hit</button>
-    <button id="standBtn" disabled>Stand</button>
-    <button id="doubleBtn" disabled>Double</button>
-  </div>
-
-  <div id="message" class="message"></div>
 </div>
 
 <script src="script.js"></script>
