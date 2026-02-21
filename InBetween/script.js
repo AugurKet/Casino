@@ -1,8 +1,14 @@
+// ================================
+// IN-BETWEEN MULTIPLAYER (FINAL)
+// ================================
+
 let players = [];
 let pool = 0;
 let deck = [];
 let currentPlayerIndex = 0;
 let anteAmount = 0;
+
+// ---------- CARD DATA ----------
 
 const suits = ["♠","♥","♦","♣"];
 const values = [
@@ -13,8 +19,10 @@ const values = [
   {name:"J",value:11},{name:"Q",value:12},{name:"K",value:13}
 ];
 
+// ---------- DECK ----------
+
 function createDeck(){
-  deck=[];
+  deck = [];
   suits.forEach(s=>{
     values.forEach(v=>{
       deck.push({suit:s,name:v.name,value:v.value});
@@ -23,16 +31,32 @@ function createDeck(){
 }
 
 function shuffleDeck(){
-  deck.sort(()=>Math.random()-0.5);
+  for(let i = deck.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
 }
+
+// ---------- START GAME ----------
 
 function startGame(){
 
-  const numPlayers = parseInt(document.getElementById("numPlayers").value) || 2;
-  anteAmount = parseInt(document.getElementById("ante").value) || 1;
+  const numPlayers = parseInt(document.getElementById("numPlayers").value);
+  anteAmount = parseInt(document.getElementById("ante").value);
+
+  if(!numPlayers || numPlayers < 2 || numPlayers > 10){
+    alert("Players must be between 2–10");
+    return;
+  }
+
+  if(!anteAmount || anteAmount <= 0){
+    alert("Ante must be at least 1");
+    return;
+  }
 
   players = [];
   pool = 0;
+  currentPlayerIndex = 0;
 
   createDeck();
   shuffleDeck();
@@ -49,62 +73,63 @@ function startGame(){
     });
   }
 
-  // collect ante safely
+  collectAnte();
+
+  document.getElementById("setup").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+
+  dealNewRound();
+}
+
+// ---------- ANTE COLLECTION ----------
+
+function collectAnte(){
   players.forEach(p=>{
     if(p.bankroll >= anteAmount){
       p.bankroll -= anteAmount;
       pool += anteAmount;
     }
   });
-
-  updatePool(); // 🔥 ensure pool displays immediately
-
-  document.getElementById("setup").classList.add("hidden");
-  document.getElementById("game").classList.remove("hidden");
-
-  dealNewRound();
 }
-  players.forEach(p=>{
-    p.bankroll-=anteAmount;
-    pool+=anteAmount;
-  });
 
-  document.getElementById("setup").classList.add("hidden");
-  document.getElementById("game").classList.remove("hidden");
-
-  dealNewRound();
-}
+// ---------- DEAL ROUND ----------
 
 function dealNewRound(){
 
-  if(pool<=0){
+  if(pool === 0){
     endGame();
     return;
   }
 
-  if(deck.length<players.length*3){
+  if(deck.length < players.length * 3){
     createDeck();
     shuffleDeck();
   }
 
   players.forEach(p=>{
-    p.card1=deck.pop();
-    p.card2=deck.pop();
+    p.card1 = deck.pop();
+    p.card2 = deck.pop();
   });
 
   renderPlayers();
   updatePool();
-  currentPlayerIndex=0;
+
+  currentPlayerIndex = 0;
   startTurn();
 }
 
+// ---------- RENDER ----------
+
 function renderPlayers(){
-  const area=document.getElementById("playersArea");
-  area.innerHTML="";
+
+  const area = document.getElementById("playersArea");
+  area.innerHTML = "";
 
   players.forEach(p=>{
-    const totalDisplay=p.total>=0?`(+${p.total})`:`(${p.total})`;
-    area.innerHTML+=`
+
+    const totalDisplay = p.total >= 0 ? `(+${p.total})` : `(${p.total})`;
+
+    area.innerHTML += `
       <div class="playerCard">
         <h3>${p.name} ${totalDisplay}</h3>
         <div>💰 ${p.bankroll}</div>
@@ -121,31 +146,38 @@ function formatCard(c){
 }
 
 function updatePool(){
-  document.getElementById("poolAmount").innerText=pool;
+  document.getElementById("poolAmount").innerText = pool;
 }
+
+// ---------- TURN SYSTEM ----------
 
 function startTurn(){
 
-  if(currentPlayerIndex>=players.length){
-    setTimeout(dealNewRound,1500);
+  if(currentPlayerIndex >= players.length){
+    setTimeout(dealNewRound, 1500);
     return;
   }
 
-  const player=players[currentPlayerIndex];
+  const player = players[currentPlayerIndex];
 
-  if(player.bankroll<=0){
-    const topUp=confirm(`${player.name} is bankrupt. Top up?`);
+  // bankrupt handling
+  if(player.bankroll <= 0){
+    const topUp = confirm(`${player.name} is bankrupt. Top up?`);
     if(topUp){
-      const amt=parseInt(prompt("Top up amount:"));
-      if(amt>0) player.bankroll+=amt;
+      const amt = parseInt(prompt("Enter top-up amount:"));
+      if(amt && amt > 0){
+        player.bankroll += amt;
+      }
     }
   }
 
-  document.getElementById("turnArea").innerHTML=`
+  const maxBet = Math.min(pool, player.bankroll);
+
+  document.getElementById("turnArea").innerHTML = `
     <div class="turnBox">
       <h3>${player.name}'s Turn</h3>
-      <label>Bet (max ${Math.min(pool,player.bankroll)})</label>
-      <input type="number" id="betAmount" min="1" max="${Math.min(pool,player.bankroll)}">
+      <label>Bet (max ${maxBet})</label>
+      <input type="number" id="betAmount" min="1" max="${maxBet}">
       <button onclick="resolveTurn()">Bet</button>
       <button onclick="skipTurn()">Skip</button>
     </div>
@@ -157,48 +189,53 @@ function skipTurn(){
   startTurn();
 }
 
+// ---------- RESOLVE ----------
+
 function resolveTurn(){
 
-  const bet=parseInt(document.getElementById("betAmount").value);
-  const player=players[currentPlayerIndex];
+  const bet = parseInt(document.getElementById("betAmount").value);
+  const player = players[currentPlayerIndex];
 
-  if(!bet||bet<=0||bet>pool||bet>player.bankroll){
-    alert("Invalid bet");
+  const maxBet = Math.min(pool, player.bankroll);
+
+  if(!bet || bet <= 0 || bet > maxBet){
+    alert("Invalid bet.");
     return;
   }
 
-  const third=deck.pop();
-  const min=Math.min(player.card1.value,player.card2.value);
-  const max=Math.max(player.card1.value,player.card2.value);
+  const third = deck.pop();
 
-  let result="";
+  const min = Math.min(player.card1.value, player.card2.value);
+  const max = Math.max(player.card1.value, player.card2.value);
 
-  if(third.value>min&&third.value<max){
-    pool-=bet;
-    player.bankroll+=bet;
-    player.total+=bet;
-    result="WIN 🎉";
+  let resultText = "";
+
+  if(third.value > min && third.value < max){
+    pool -= bet;
+    player.bankroll += bet;
+    player.total += bet;
+    resultText = "WIN 🎉";
   }
-  else if(third.value===min||third.value===max){
-    pool+=bet*2;
-    player.bankroll-=bet*2;
-    player.total-=bet*2;
-    result="DOUBLE LOSS 💀";
+  else if(third.value === min || third.value === max){
+    pool += bet * 2;
+    player.bankroll -= bet * 2;
+    player.total -= bet * 2;
+    resultText = "DOUBLE LOSS 💀";
   }
   else{
-    pool+=bet;
-    player.bankroll-=bet;
-    player.total-=bet;
-    result="LOSE ❌";
+    pool += bet;
+    player.bankroll -= bet;
+    player.total -= bet;
+    resultText = "LOSE ❌";
   }
 
   updatePool();
   renderPlayers();
 
-  document.getElementById("turnArea").innerHTML=`
+  document.getElementById("turnArea").innerHTML = `
     <div class="turnBox">
       <p>Third Card: ${formatCard(third)}</p>
-      <h2>${result}</h2>
+      <h2>${resultText}</h2>
     </div>
   `;
 
@@ -208,20 +245,17 @@ function resolveTurn(){
   },1500);
 }
 
+// ---------- END GAME ----------
+
 function endGame(){
 
-  const samePlayers=confirm("Pool empty! Play again with SAME players?");
+  const samePlayers = confirm("Pool is empty! Play again with SAME players?");
+
   if(samePlayers){
-    pool=0;
-    players.forEach(p=>{
-      if(p.bankroll>=anteAmount){
-        p.bankroll-=anteAmount;
-        pool+=anteAmount;
-      }
-    });
+    pool = 0;
+    collectAnte();
     dealNewRound();
-  }
-  else{
+  } else {
     location.reload();
   }
 }
