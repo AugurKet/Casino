@@ -1,11 +1,13 @@
 let chips = 500;
 let bet = 0;
 let deck = [];
-let playerHand = [];
+let playerHands = [[]];
 let dealerHand = [];
+let currentHand = 0;
 let gameActive = false;
 let insuranceBet = 0;
 let holeHidden = true;
+let musicStarted = false;
 
 const suits = ["♠","♥","♦","♣"];
 const values = [
@@ -21,6 +23,14 @@ const winSound = document.getElementById("winSound");
 const loseSound = document.getElementById("loseSound");
 const blackjackSound = document.getElementById("blackjackSound");
 const chipSound = document.getElementById("chipSound");
+
+function startMusic(){
+  if(!musicStarted){
+    bgMusic.volume=0.3;
+    bgMusic.play().catch(()=>{});
+    musicStarted=true;
+  }
+}
 
 function saveChips(){ localStorage.setItem("bjNeonChips",chips); }
 function loadChips(){
@@ -53,9 +63,9 @@ function score(hand){
 }
 
 function render(){
-  renderHand(playerHand,"playerCards",false);
+  renderHand(playerHands[currentHand],"playerCards",false);
   renderHand(dealerHand,"dealerCards",holeHidden);
-  document.getElementById("playerScore").innerText=score(playerHand);
+  document.getElementById("playerScore").innerText=score(playerHands[currentHand]);
   document.getElementById("dealerScore").innerText=holeHidden?"?":score(dealerHand);
 }
 
@@ -78,6 +88,7 @@ function renderHand(hand,id,hideHole){
 function addBet(v){
   if(gameActive) return;
   if(chips>=v){
+    startMusic();
     chipSound.play();
     bet+=v;
     chips-=v;
@@ -92,30 +103,37 @@ function clearBet(){
   bet=0;
   updateChips();
   document.getElementById("betDisplay").innerText=0;
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("selected"));
 }
 
 function startGame(){
   if(bet===0) return alert("Place bet first");
-  bgMusic.play();
   createDeck();
-  playerHand=[];
+  playerHands=[[]];
   dealerHand=[];
+  currentHand=0;
   holeHidden=true;
   gameActive=true;
 
-  draw(playerHand);
+  draw(playerHands[0]);
   draw(dealerHand);
-  draw(playerHand);
+  draw(playerHands[0]);
   draw(dealerHand);
+
+  document.getElementById("splitBtn").disabled =
+    playerHands[0][0].name!==playerHands[0][1].name;
+
+  document.getElementById("insuranceBtn").disabled =
+    dealerHand[0].name!=="A";
 
   render();
 
-  if(score(playerHand)===21){
+  if(score(playerHands[0])===21){
     holeHidden=false;
     render();
     chips+=bet*2.5;
     blackjackSound.play();
-    document.getElementById("message").innerText="BLACKJACK! 3:2 Payout!";
+    document.getElementById("message").innerText="BLACKJACK!";
     updateChips();
     gameActive=false;
   }
@@ -124,44 +142,79 @@ function startGame(){
 }
 
 function hit(){
-  draw(playerHand);
+  draw(playerHands[currentHand]);
   render();
-  if(score(playerHand)>21) endGame();
+  if(score(playerHands[currentHand])>21) nextHand();
 }
 
-function stand(){
+function stand(){ nextHand(); }
+
+function doubleDown(){
+  if(chips<bet) return;
+  chips-=bet;
+  bet*=2;
+  updateChips();
+  draw(playerHands[currentHand]);
+  nextHand();
+}
+
+function split(){
+  if(chips<bet) return;
+  chips-=bet;
+  updateChips();
+  const [c1,c2]=playerHands[0];
+  playerHands=[[c1],[c2]];
+  draw(playerHands[0]);
+  draw(playerHands[1]);
+  document.getElementById("splitBtn").disabled=true;
+  render();
+}
+
+function insurance(){
+  if(chips<bet/2) return;
+  insuranceBet=bet/2;
+  chips-=insuranceBet;
+  updateChips();
+  document.getElementById("insuranceBtn").disabled=true;
+}
+
+function nextHand(){
+  if(currentHand<playerHands.length-1){
+    currentHand++;
+    render();
+  } else {
+    dealerTurn();
+  }
+}
+
+function dealerTurn(){
   holeHidden=false;
   render();
   while(score(dealerHand)<17) draw(dealerHand);
-  endGame();
+  settle();
 }
 
-function endGame(){
-  toggleButtons(false);
+function settle(){
   gameActive=false;
-  holeHidden=false;
-  render();
+  toggleButtons(false);
+  let dealerScore=score(dealerHand);
 
-  let p=score(playerHand);
-  let d=score(dealerHand);
-
-  if(p>21){
-    loseSound.play();
-    document.getElementById("message").innerText="Bust!";
-  }
-  else if(d>21 || p>d){
-    winSound.play();
-    chips+=bet*2;
-    document.getElementById("message").innerText="You Win!";
-  }
-  else if(p===d){
-    chips+=bet;
-    document.getElementById("message").innerText="Push";
-  }
-  else{
-    loseSound.play();
-    document.getElementById("message").innerText="Dealer Wins";
-  }
+  playerHands.forEach(hand=>{
+    let s=score(hand);
+    if(s>21){
+      loseSound.play();
+    }
+    else if(dealerScore>21 || s>dealerScore){
+      chips+=bet*2;
+      winSound.play();
+    }
+    else if(s===dealerScore){
+      chips+=bet;
+    }
+    else{
+      loseSound.play();
+    }
+  });
 
   updateChips();
 }
@@ -172,11 +225,20 @@ function toggleButtons(state){
 }
 
 document.querySelectorAll(".chip")
-.forEach(c=>c.onclick=()=>addBet(parseInt(c.dataset.value)));
+.forEach(c=>{
+  c.onclick=()=>{
+    document.querySelectorAll(".chip").forEach(x=>x.classList.remove("selected"));
+    c.classList.add("selected");
+    addBet(parseInt(c.dataset.value));
+  }
+});
 
 document.getElementById("clearBet").onclick=clearBet;
 document.getElementById("dealBtn").onclick=startGame;
 document.getElementById("hitBtn").onclick=hit;
 document.getElementById("standBtn").onclick=stand;
+document.getElementById("doubleBtn").onclick=doubleDown;
+document.getElementById("splitBtn").onclick=split;
+document.getElementById("insuranceBtn").onclick=insurance;
 
 loadChips();
