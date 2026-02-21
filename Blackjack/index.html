@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,37 +10,37 @@
 
 <div class="table">
 
-<h1 class="neon-title">♠ BLACKJACK NEON ♣</h1>
+<h1 class="neon">♠ BLACKJACK NEON CASINO ♣</h1>
 
 <div class="bankroll">
 💰 Bankroll: <span id="chips">500</span>
 </div>
 
-<div class="chip-area">
+<div class="chip-row">
 <div class="chip" data-value="10">10</div>
 <div class="chip" data-value="25">25</div>
 <div class="chip" data-value="50">50</div>
 <div class="chip" data-value="100">100</div>
 </div>
 
-<div class="bet-display">
-Current Bet: <span id="betDisplay">0</span>
+<div class="bet-row">
+Bet: <span id="betDisplay">0</span>
 <button id="clearBet">Clear</button>
 <button id="dealBtn">Deal</button>
 </div>
 
 <div class="game-area">
-  <div class="dealer">
-    <h2>Dealer</h2>
-    <div id="dealerCards" class="cards"></div>
-    <div id="dealerScore"></div>
-  </div>
+<div>
+<h2>Dealer</h2>
+<div id="dealerCards" class="cards"></div>
+<div id="dealerScore"></div>
+</div>
 
-  <div class="player">
-    <h2>Player</h2>
-    <div id="playerCards" class="cards"></div>
-    <div id="playerScore"></div>
-  </div>
+<div>
+<h2>Player</h2>
+<div id="playerCards" class="cards"></div>
+<div id="playerScore"></div>
+</div>
 </div>
 
 <div class="controls">
@@ -54,6 +54,12 @@ Current Bet: <span id="betDisplay">0</span>
 <div id="message" class="message"></div>
 
 </div>
+
+<audio id="bgMusic" src="sounds/bg.mp3" loop></audio>
+<audio id="winSound" src="sounds/win.mp3"></audio>
+<audio id="loseSound" src="sounds/lose.mp3"></audio>
+<audio id="blackjackSound" src="sounds/blackjack.mp3"></audio>
+<audio id="chipSound" src="sounds/chip.mp3"></audio>
 
 <script src="script.js"></script>
 </body>
