@@ -33,14 +33,21 @@ function shuffleDeck() {
   deck.sort(() => Math.random() - 0.5);
 }
 
+function dealTwoCards() {
+  if (deck.length < players.length * 3) {
+    createDeck();
+    shuffleDeck();
+  }
+
+  players.forEach(player => {
+    player.card1 = deck.pop();
+    player.card2 = deck.pop();
+  });
+}
+
 function startGame() {
   const numPlayers = parseInt(document.getElementById("numPlayers").value);
   const ante = parseInt(document.getElementById("ante").value);
-
-  if (numPlayers < 2 || numPlayers > 10) {
-    alert("Players must be between 2 and 10.");
-    return;
-  }
 
   players = [];
   pool = ante * numPlayers;
@@ -51,14 +58,14 @@ function startGame() {
 
   for (let i = 0; i < numPlayers; i++) {
     const name = prompt(`Enter name for Player ${i + 1}`);
-    const card1 = deck.pop();
-    const card2 = deck.pop();
     players.push({
       name: name || `Player ${i + 1}`,
-      card1,
-      card2
+      card1: null,
+      card2: null
     });
   }
+
+  dealTwoCards();
 
   document.getElementById("setup").classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
@@ -93,12 +100,6 @@ function updatePool() {
 }
 
 function startTurn() {
-  if (currentPlayerIndex >= players.length) {
-    document.getElementById("turnArea").innerHTML =
-      "<h2>Round Complete 🎉</h2>";
-    return;
-  }
-
   const player = players[currentPlayerIndex];
 
   document.getElementById("turnArea").innerHTML = `
@@ -106,7 +107,18 @@ function startTurn() {
       <h3>${player.name}'s Turn</h3>
       <label>Bet Amount (max ${pool}):</label>
       <input type="number" id="betAmount" min="1" max="${pool}">
+      <br><br>
       <button onclick="resolveTurn()">Bet</button>
+      <button onclick="skipTurn()" style="background:#64748b;">Skip</button>
+    </div>
+  `;
+}
+
+function skipTurn() {
+  document.getElementById("turnArea").innerHTML = `
+    <div class="turnBox">
+      <h3>${players[currentPlayerIndex].name} Skipped ⏭</h3>
+      <button onclick="nextTurn()">Next</button>
     </div>
   `;
 }
@@ -151,5 +163,28 @@ function resolveTurn() {
 
 function nextTurn() {
   currentPlayerIndex++;
+
+  if (currentPlayerIndex >= players.length) {
+    startNewRound();
+    return;
+  }
+
   startTurn();
+}
+
+function startNewRound() {
+  currentPlayerIndex = 0;
+
+  document.getElementById("turnArea").innerHTML = `
+    <div class="turnBox">
+      <h2>New Round 🎴</h2>
+      <p>Dealing new cards...</p>
+    </div>
+  `;
+
+  setTimeout(() => {
+    dealTwoCards();
+    renderPlayers();
+    startTurn();
+  }, 1500);
 }
