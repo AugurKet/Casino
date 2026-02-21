@@ -2,9 +2,7 @@ let players = [];
 let pool = 0;
 let deck = [];
 let currentPlayerIndex = 0;
-
-const STARTING_BANKROLL = 100;
-const PLAYER_BOX_COLOR = "#355E3B"; // Hunter Green
+let anteAmount = 0;
 
 const suits = ["♠", "♥", "♦", "♣"];
 const values = [
@@ -27,7 +25,7 @@ function createDeck() {
   deck = [];
   suits.forEach(suit => {
     values.forEach(val => {
-      deck.push({ suit: suit, name: val.name, value: val.value });
+      deck.push({ suit, name: val.name, value: val.value });
     });
   });
 }
@@ -36,24 +34,18 @@ function shuffleDeck() {
   deck.sort(() => Math.random() - 0.5);
 }
 
-function dealTwoCards() {
-  if (deck.length < players.length * 3) {
-    createDeck();
-    shuffleDeck();
-  }
-
-  players.forEach(player => {
-    player.card1 = deck.pop();
-    player.card2 = deck.pop();
-  });
+function playSound(id) {
+  const sound = document.getElementById(id);
+  sound.currentTime = 0;
+  sound.play();
 }
 
 function startGame() {
   const numPlayers = parseInt(document.getElementById("numPlayers").value);
-  const ante = parseInt(document.getElementById("ante").value);
+  anteAmount = parseInt(document.getElementById("ante").value);
 
   players = [];
-  pool = 0;
+  pool = anteAmount * numPlayers;
   currentPlayerIndex = 0;
 
   createDeck();
@@ -63,25 +55,32 @@ function startGame() {
     const name = prompt(`Enter name for Player ${i + 1}`);
     players.push({
       name: name || `Player ${i + 1}`,
-      bankroll: STARTING_BANKROLL,
+      total: 0,
       card1: null,
       card2: null
     });
   }
 
-  // Deduct ante
-  players.forEach(p => {
-    p.bankroll -= ante;
-    pool += ante;
-  });
-
-  dealTwoCards();
-
   document.getElementById("setup").classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
 
+  dealNewRound();
+}
+
+function dealNewRound() {
+  if (deck.length < players.length * 3) {
+    createDeck();
+    shuffleDeck();
+  }
+
+  players.forEach(p => {
+    p.card1 = deck.pop();
+    p.card2 = deck.pop();
+  });
+
   renderPlayers();
   updatePool();
+  currentPlayerIndex = 0;
   startTurn();
 }
 
@@ -90,72 +89,78 @@ function renderPlayers() {
   area.innerHTML = "";
 
   players.forEach(p => {
+    const totalDisplay = p.total >= 0 ? `(+${p.total})` : `(${p.total})`;
+
     area.innerHTML += `
-      <div class="playerCard" style="background:${PLAYER_BOX_COLOR};">
-        <h3 style="color:black; font-weight:bold;">${p.name}</h3>
-        <div style="font-size:18px;">💰 ${p.bankroll}</div>
+      <div class="playerCard">
+        <h3>${p.name} ${totalDisplay}</h3>
         <div class="cards">
-          ${formatCard(p.card1)} &nbsp; ${formatCard(p.card2)}
+          <span class="card">${formatCard(p.card1)}</span>
+          <span class="card">${formatCard(p.card2)}</span>
         </div>
       </div>
     `;
   });
+
+  playSound("dealSound");
 }
 
 function formatCard(card) {
-  const color = (card.suit === "♥" || card.suit === "♦") ? "red" : "black";
-  return `<span style="color:${color}; font-weight:bold; font-size:22px;">
-            ${card.name}${card.suit}
-          </span>`;
+  return `${card.name}${card.suit}`;
 }
 
 function updatePool() {
-  document.getElementById("poolAmount").innerHTML =
-    `<span style="font-size:40px; font-weight:bold;">${pool}</span>`;
+  document.getElementById("poolAmount").innerText = pool;
 }
 
 function startTurn() {
+  if (currentPlayerIndex >= players.length) {
+    setTimeout(() => {
+      dealNewRound();
+    }, 1500);
+    return;
+  }
 
   const player = players[currentPlayerIndex];
 
-  // Bankruptcy check
-  if (player.bankroll <= 0) {
-    const topUp = confirm(`${player.name} has no money. Top up?`);
-    if (topUp) {
-      const amount = parseInt(prompt("Enter top-up amount:"));
-      if (amount && amount > 0) {
-        player.bankroll += amount;
-        renderPlayers();
-      }
-    } else {
-      moveToNextPlayer();
-      return;
-    }
-  }
-
   document.getElementById("turnArea").innerHTML = `
-    <div class="turnBox">
+    <div class="turnBox" id="swipeBox">
       <h3>${player.name}'s Turn</h3>
-      <p>💰 ${player.bankroll}</p>
-      <label>Bet Amount (max ${Math.min(pool, player.bankroll)}):</label>
-      <input type="number" id="betAmount" min="1" max="${Math.min(pool, player.bankroll)}">
-      <br><br>
-      <button onclick="resolveTurn()">Bet</button>
-      <button onclick="skipTurn()" style="background:#64748b;">Skip</button>
+      <label>Bet (max ${pool})</label>
+      <input type="number" id="betAmount" min="1" max="${pool}">
+      <button onclick="resolveTurn()">Confirm Bet</button>
+      <p>Swipe Up = Max Bet | Swipe Down = Min Bet</p>
     </div>
   `;
+
+  addSwipe();
 }
 
-function skipTurn() {
-  moveToNextPlayer();
+function addSwipe() {
+  const box = document.getElementById("swipeBox");
+  let startY = 0;
+
+  box.addEventListener("touchstart", e => {
+    startY = e.touches[0].clientY;
+  });
+
+  box.addEventListener("touchend", e => {
+    let endY = e.changedTouches[0].clientY;
+    if (startY - endY > 50) {
+      document.getElementById("betAmount").value = pool;
+    }
+    if (endY - startY > 50) {
+      document.getElementById("betAmount").value = 1;
+    }
+  });
 }
 
 function resolveTurn() {
   const bet = parseInt(document.getElementById("betAmount").value);
   const player = players[currentPlayerIndex];
 
-  if (!bet || bet <= 0 || bet > pool || bet > player.bankroll) {
-    alert("Invalid bet.");
+  if (!bet || bet <= 0 || bet > pool) {
+    alert("Invalid bet");
     return;
   }
 
@@ -163,98 +168,42 @@ function resolveTurn() {
   const min = Math.min(player.card1.value, player.card2.value);
   const max = Math.max(player.card1.value, player.card2.value);
 
-  let resultMessage = "";
+  let resultClass = "";
+  let resultText = "";
 
   if (thirdCard.value > min && thirdCard.value < max) {
-
-    if (bet === pool) {
-      player.bankroll += pool;
-      renderPlayers();
-
-      document.getElementById("turnArea").innerHTML = `
-        <div class="turnBox">
-          <h2>${player.name} WON THE ENTIRE POOL! 🏆</h2>
-          <p>Winning Card: ${formatCard(thirdCard)}</p>
-          <button onclick="newGameSamePlayers()">Same Players</button>
-          <button onclick="newGameNewPlayers()">New Players</button>
-        </div>
-      `;
-      return;
-    }
-
     pool -= bet;
-    player.bankroll += bet;
-    resultMessage = "WIN 🎉";
-
+    player.total += bet;
+    resultClass = "resultWin";
+    resultText = "WIN 🎉";
+    playSound("winSound");
   } else if (thirdCard.value === min || thirdCard.value === max) {
     pool += bet * 2;
-    player.bankroll -= bet * 2;
-    resultMessage = "DOUBLE LOSS 💀";
+    player.total -= bet * 2;
+    resultClass = "resultDouble";
+    resultText = "DOUBLE LOSS 💀";
+    playSound("loseSound");
   } else {
     pool += bet;
-    player.bankroll -= bet;
-    resultMessage = "LOSE ❌";
+    player.total -= bet;
+    resultClass = "resultLose";
+    resultText = "LOSE ❌";
+    playSound("loseSound");
   }
 
   updatePool();
-  renderPlayers();
 
   document.getElementById("turnArea").innerHTML = `
     <div class="turnBox">
-      <h3>${player.name}</h3>
       <p>Third Card: ${formatCard(thirdCard)}</p>
-      <h2>${resultMessage}</h2>
-      <button onclick="moveToNextPlayer()">NEXT</button>
+      <h2 class="${resultClass}">${resultText}</h2>
     </div>
   `;
-}
 
-function moveToNextPlayer() {
-  currentPlayerIndex++;
+  renderPlayers();
 
-  if (currentPlayerIndex >= players.length) {
-    startNewRound();
-  } else {
+  setTimeout(() => {
+    currentPlayerIndex++;
     startTurn();
-  }
-}
-
-function startNewRound() {
-  currentPlayerIndex = 0;
-
-  document.getElementById("turnArea").innerHTML = `
-    <div class="turnBox">
-      <h2>New Round 🎴</h2>
-      <button onclick="continueRound()">Continue</button>
-    </div>
-  `;
-}
-
-function continueRound() {
-  dealTwoCards();
-  renderPlayers();
-  startTurn();
-}
-
-// === End Game Options ===
-
-function newGameSamePlayers() {
-  const ante = parseInt(document.getElementById("ante").value);
-  pool = 0;
-
-  players.forEach(p => {
-    p.bankroll -= ante;
-    pool += ante;
-  });
-
-  dealTwoCards();
-  currentPlayerIndex = 0;
-  renderPlayers();
-  updatePool();
-  startTurn();
-}
-
-function newGameNewPlayers() {
-  document.getElementById("game").classList.add("hidden");
-  document.getElementById("setup").classList.remove("hidden");
+  }, 1500);
 }
