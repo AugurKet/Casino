@@ -8,7 +8,7 @@ const PLAYER_BOX_COLOR = "#355E3B"; // Hunter Green
 
 const suits = ["♠", "♥", "♦", "♣"];
 const values = [
-  { name: "A", value: 14 },
+  { name: "A", value: 1 },
   { name: "2", value: 2 },
   { name: "3", value: 3 },
   { name: "4", value: 4 },
