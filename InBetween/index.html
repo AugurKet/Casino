@@ -8,13 +8,13 @@
 </head>
 <body>
 
-<h1>🎴 In-Between Card Game</h1>
+<h1>🎴 In-Between</h1>
 
 <div id="setup">
-  <label>Number of Players (2–10):</label>
+  <label>Number of Players (2–10)</label>
   <input type="number" id="numPlayers" min="2" max="10" value="2">
 
-  <label>Ante Amount:</label>
+  <label>Ante Amount</label>
   <input type="number" id="ante" min="1" value="5">
 
   <button onclick="startGame()">Start Game</button>
@@ -25,6 +25,10 @@
   <div id="playersArea"></div>
   <div id="turnArea"></div>
 </div>
+
+<audio id="dealSound" src="https://assets.mixkit.co/sfx/preview/mixkit-card-dealing-1562.mp3"></audio>
+<audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
+<audio id="loseSound" src="https://assets.mixkit.co/sfx/preview/mixkit-losing-drums-2023.mp3"></audio>
 
 <script src="script.js"></script>
 </body>
