@@ -1,44 +1,49 @@
 let chips = 500;
 let bet = 0;
 let deck = [];
-let playerHands = [[]];
+let playerHand = [];
 let dealerHand = [];
-let currentHandIndex = 0;
 let gameActive = false;
 let insuranceBet = 0;
+let holeHidden = true;
 
 const suits = ["♠","♥","♦","♣"];
 const values = [
-  {name:"A", val:11},{name:"2", val:2},{name:"3", val:3},
-  {name:"4", val:4},{name:"5", val:5},{name:"6", val:6},
-  {name:"7", val:7},{name:"8", val:8},{name:"9", val:9},
-  {name:"10", val:10},{name:"J", val:10},
-  {name:"Q", val:10},{name:"K", val:10}
+{name:"A",val:11},{name:"2",val:2},{name:"3",val:3},
+{name:"4",val:4},{name:"5",val:5},{name:"6",val:6},
+{name:"7",val:7},{name:"8",val:8},{name:"9",val:9},
+{name:"10",val:10},{name:"J",val:10},
+{name:"Q",val:10},{name:"K",val:10}
 ];
 
-function saveChips(){ localStorage.setItem("bjNeonChips", chips); }
+const bgMusic = document.getElementById("bgMusic");
+const winSound = document.getElementById("winSound");
+const loseSound = document.getElementById("loseSound");
+const blackjackSound = document.getElementById("blackjackSound");
+const chipSound = document.getElementById("chipSound");
+
+function saveChips(){ localStorage.setItem("bjNeonChips",chips); }
 function loadChips(){
-  const saved = localStorage.getItem("bjNeonChips");
-  if(saved) chips = parseInt(saved);
+  const saved=localStorage.getItem("bjNeonChips");
+  if(saved) chips=parseInt(saved);
   updateChips();
 }
-
 function updateChips(){
-  document.getElementById("chips").innerText = chips;
+  document.getElementById("chips").innerText=chips;
   saveChips();
 }
 
 function createDeck(){
   deck=[];
-  for(let s of suits)
-    for(let v of values)
-      deck.push({suit:s,name:v.name,val:v.val});
+  for(let i=0;i<6;i++){
+    for(let s of suits)
+      for(let v of values)
+        deck.push({suit:s,name:v.name,val:v.val});
+  }
   deck.sort(()=>Math.random()-0.5);
 }
 
-function draw(hand){
-  hand.push(deck.pop());
-}
+function draw(hand){ hand.push(deck.pop()); }
 
 function score(hand){
   let s=0, aces=0;
@@ -48,28 +53,34 @@ function score(hand){
 }
 
 function render(){
-  renderHand(playerHands[currentHandIndex], "playerCards");
-  renderHand(dealerHand,"dealerCards");
-  document.getElementById("playerScore").innerText = score(playerHands[currentHandIndex]);
-  document.getElementById("dealerScore").innerText = gameActive ? "?" : score(dealerHand);
+  renderHand(playerHand,"playerCards",false);
+  renderHand(dealerHand,"dealerCards",holeHidden);
+  document.getElementById("playerScore").innerText=score(playerHand);
+  document.getElementById("dealerScore").innerText=holeHidden?"?":score(dealerHand);
 }
 
-function renderHand(hand,id){
+function renderHand(hand,id,hideHole){
   const el=document.getElementById(id);
   el.innerHTML="";
-  hand.forEach(c=>{
+  hand.forEach((c,i)=>{
     const d=document.createElement("div");
     d.className="card";
-    d.innerText=c.name+c.suit;
+    if(hideHole && i===1){
+      d.classList.add("back");
+      d.innerText="🂠";
+    } else {
+      d.innerText=c.name+c.suit;
+    }
     el.appendChild(d);
   });
 }
 
-function addBet(value){
+function addBet(v){
   if(gameActive) return;
-  if(chips>=value){
-    bet+=value;
-    chips-=value;
+  if(chips>=v){
+    chipSound.play();
+    bet+=v;
+    chips-=v;
     updateChips();
     document.getElementById("betDisplay").innerText=bet;
   }
@@ -84,93 +95,75 @@ function clearBet(){
 }
 
 function startGame(){
-  if(bet===0) return alert("Place a bet!");
-  gameActive=true;
+  if(bet===0) return alert("Place bet first");
+  bgMusic.play();
   createDeck();
-  playerHands=[[]];
+  playerHand=[];
   dealerHand=[];
-  currentHandIndex=0;
-  insuranceBet=0;
+  holeHidden=true;
+  gameActive=true;
 
-  draw(playerHands[0]);
+  draw(playerHand);
   draw(dealerHand);
-  draw(playerHands[0]);
+  draw(playerHand);
   draw(dealerHand);
 
-  document.getElementById("splitBtn").disabled =
-    playerHands[0][0].name!==playerHands[0][1].name;
+  render();
 
-  document.getElementById("insuranceBtn").disabled =
-    dealerHand[0].name!=="A";
+  if(score(playerHand)===21){
+    holeHidden=false;
+    render();
+    chips+=bet*2.5;
+    blackjackSound.play();
+    document.getElementById("message").innerText="BLACKJACK! 3:2 Payout!";
+    updateChips();
+    gameActive=false;
+  }
 
   toggleButtons(true);
-  render();
 }
 
 function hit(){
-  draw(playerHands[currentHandIndex]);
+  draw(playerHand);
   render();
-  if(score(playerHands[currentHandIndex])>21) nextHand();
+  if(score(playerHand)>21) endGame();
 }
 
-function stand(){ nextHand(); }
-
-function nextHand(){
-  if(currentHandIndex < playerHands.length-1){
-    currentHandIndex++;
-    render();
-  }else{
-    dealerTurn();
-  }
-}
-
-function dealerTurn(){
+function stand(){
+  holeHidden=false;
+  render();
   while(score(dealerHand)<17) draw(dealerHand);
-  gameActive=false;
-  render();
-  settle();
+  endGame();
+}
+
+function endGame(){
   toggleButtons(false);
-}
-
-function settle(){
-  let dealerScore=score(dealerHand);
-  playerHands.forEach(hand=>{
-    let s=score(hand);
-    if(s>21){}
-    else if(dealerScore>21 || s>dealerScore){
-      chips+=bet*2;
-      document.getElementById("message").innerText="🎉 You Win!";
-    }
-    else if(s===dealerScore){
-      chips+=bet;
-      document.getElementById("message").innerText="Push!";
-    }
-    else{
-      document.getElementById("message").innerText="Dealer Wins";
-    }
-  });
-  updateChips();
-}
-
-function split(){
-  if(chips<bet) return;
-  chips-=bet;
-  updateChips();
-  const first=playerHands[0][0];
-  const second=playerHands[0][1];
-  playerHands=[[first],[second]];
-  draw(playerHands[0]);
-  draw(playerHands[1]);
-  document.getElementById("splitBtn").disabled=true;
+  gameActive=false;
+  holeHidden=false;
   render();
-}
 
-function insurance(){
-  if(chips<bet/2) return;
-  insuranceBet=bet/2;
-  chips-=insuranceBet;
+  let p=score(playerHand);
+  let d=score(dealerHand);
+
+  if(p>21){
+    loseSound.play();
+    document.getElementById("message").innerText="Bust!";
+  }
+  else if(d>21 || p>d){
+    winSound.play();
+    chips+=bet*2;
+    document.getElementById("message").innerText="You Win!";
+  }
+  else if(p===d){
+    chips+=bet;
+    document.getElementById("message").innerText="Push";
+  }
+  else{
+    loseSound.play();
+    document.getElementById("message").innerText="Dealer Wins";
+  }
+
   updateChips();
-  document.getElementById("insuranceBtn").disabled=true;
 }
 
 function toggleButtons(state){
@@ -185,7 +178,5 @@ document.getElementById("clearBet").onclick=clearBet;
 document.getElementById("dealBtn").onclick=startGame;
 document.getElementById("hitBtn").onclick=hit;
 document.getElementById("standBtn").onclick=stand;
-document.getElementById("splitBtn").onclick=split;
-document.getElementById("insuranceBtn").onclick=insurance;
 
 loadChips();
