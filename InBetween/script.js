@@ -27,26 +27,43 @@ function shuffleDeck(){
 }
 
 function startGame(){
-  const numPlayers=parseInt(document.getElementById("numPlayers").value);
-  anteAmount=parseInt(document.getElementById("ante").value);
 
-  players=[];
-  pool=0;
+  const numPlayers = parseInt(document.getElementById("numPlayers").value) || 2;
+  anteAmount = parseInt(document.getElementById("ante").value) || 1;
+
+  players = [];
+  pool = 0;
 
   createDeck();
   shuffleDeck();
 
   for(let i=0;i<numPlayers;i++){
-    const name=prompt(`Enter name for Player ${i+1}`);
+    const name = prompt(`Enter name for Player ${i+1}`) || `Player ${i+1}`;
+
     players.push({
-      name:name||`Player ${i+1}`,
-      bankroll:anteAmount*5,   // starting bankroll
-      total:0,
-      card1:null,
-      card2:null
+      name: name,
+      bankroll: anteAmount * 5,
+      total: 0,
+      card1: null,
+      card2: null
     });
   }
 
+  // collect ante safely
+  players.forEach(p=>{
+    if(p.bankroll >= anteAmount){
+      p.bankroll -= anteAmount;
+      pool += anteAmount;
+    }
+  });
+
+  updatePool(); // 🔥 ensure pool displays immediately
+
+  document.getElementById("setup").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+
+  dealNewRound();
+}
   players.forEach(p=>{
     p.bankroll-=anteAmount;
     pool+=anteAmount;
