@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
   text-align: center;
-  background: #0f172a;
+  background: radial-gradient(circle, #0f172a, #020617);
   color: white;
 }
 
@@ -13,16 +13,10 @@ h1 {
   display: none;
 }
 
-input {
-  padding: 5px;
-  margin: 5px;
-}
-
 button {
-  padding: 8px 12px;
+  padding: 8px 15px;
   margin: 10px;
-  cursor: pointer;
-  border-radius: 5px;
+  border-radius: 8px;
   border: none;
   background: #22c55e;
   color: white;
@@ -35,26 +29,51 @@ button:hover {
 
 #playersArea {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 15px;
   margin: 20px;
 }
 
 .playerCard {
   background: #1e293b;
-  padding: 10px;
-  border-radius: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
 }
 
 .cards {
-  font-size: 22px;
+  font-size: 24px;
   margin: 10px 0;
+}
+
+.card {
+  display: inline-block;
+  padding: 8px 10px;
+  margin: 5px;
+  background: white;
+  color: black;
+  border-radius: 6px;
+  transform: translateY(-50px);
+  opacity: 0;
+  animation: deal 0.5s forwards;
+}
+
+@keyframes deal {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .turnBox {
   background: #334155;
   padding: 15px;
-  margin: 15px auto;
-  width: 300px;
-  border-radius: 10px;
+  margin: 20px auto;
+  width: 320px;
+  border-radius: 12px;
 }
+
+.resultWin { color: #22c55e; }
+.resultLose { color: #ef4444; }
+.resultDouble { color: #f97316; }
