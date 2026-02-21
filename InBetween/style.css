@@ -5,17 +5,11 @@ body {
   color: white;
 }
 
-h1 {
-  margin-top: 20px;
-}
-
-.hidden {
-  display: none;
-}
+.hidden { display: none; }
 
 button {
   padding: 8px 15px;
-  margin: 10px;
+  margin: 8px;
   border-radius: 8px;
   border: none;
   background: #22c55e;
@@ -23,13 +17,11 @@ button {
   font-weight: bold;
 }
 
-button:hover {
-  background: #16a34a;
-}
+button:hover { background: #16a34a; }
 
 #playersArea {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
   margin: 20px;
 }
@@ -38,32 +30,11 @@ button:hover {
   background: #1e293b;
   padding: 12px;
   border-radius: 12px;
-  position: relative;
-  overflow: hidden;
 }
 
 .cards {
-  font-size: 24px;
+  font-size: 22px;
   margin: 10px 0;
-}
-
-.card {
-  display: inline-block;
-  padding: 8px 10px;
-  margin: 5px;
-  background: white;
-  color: black;
-  border-radius: 6px;
-  transform: translateY(-50px);
-  opacity: 0;
-  animation: deal 0.5s forwards;
-}
-
-@keyframes deal {
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
 }
 
 .turnBox {
@@ -73,7 +44,3 @@ button:hover {
   width: 320px;
   border-radius: 12px;
 }
-
-.resultWin { color: #22c55e; }
-.resultLose { color: #ef4444; }
-.resultDouble { color: #f97316; }
