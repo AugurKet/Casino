@@ -1,5 +1,5 @@
 // ================================
-// IN-BETWEEN MULTIPLAYER (FINAL)
+// IN-BETWEEN MULTIPLAYER (STABLE)
 // ================================
 
 let players = [];
@@ -66,7 +66,7 @@ function startGame(){
 
     players.push({
       name: name,
-      bankroll: anteAmount * 5,
+      bankroll: 100,   // 🔥 starting bankroll now 100
       total: 0,
       card1: null,
       card2: null
@@ -81,7 +81,7 @@ function startGame(){
   dealNewRound();
 }
 
-// ---------- ANTE COLLECTION ----------
+// ---------- ANTE ----------
 
 function collectAnte(){
   players.forEach(p=>{
@@ -92,7 +92,7 @@ function collectAnte(){
   });
 }
 
-// ---------- DEAL ROUND ----------
+// ---------- DEAL ----------
 
 function dealNewRound(){
 
@@ -130,7 +130,7 @@ function renderPlayers(){
     const totalDisplay = p.total >= 0 ? `(+${p.total})` : `(${p.total})`;
 
     area.innerHTML += `
-      <div class="playerCard">
+      <div class="playerCard" style="background-color:#355E3B;">
         <h3>${p.name} ${totalDisplay}</h3>
         <div>💰 ${p.bankroll}</div>
         <div class="cards">
@@ -149,7 +149,7 @@ function updatePool(){
   document.getElementById("poolAmount").innerText = pool;
 }
 
-// ---------- TURN SYSTEM ----------
+// ---------- TURN ----------
 
 function startTurn(){
 
@@ -160,7 +160,6 @@ function startTurn(){
 
   const player = players[currentPlayerIndex];
 
-  // bankrupt handling
   if(player.bankroll <= 0){
     const topUp = confirm(`${player.name} is bankrupt. Top up?`);
     if(topUp){
@@ -211,10 +210,26 @@ function resolveTurn(){
   let resultText = "";
 
   if(third.value > min && third.value < max){
+
     pool -= bet;
     player.bankroll += bet;
     player.total += bet;
     resultText = "WIN 🎉";
+
+    // 🔥 STOP GAME IF POOL EMPTY AFTER WIN
+    if(pool === 0){
+      updatePool();
+      renderPlayers();
+      document.getElementById("turnArea").innerHTML = `
+        <div class="turnBox">
+          <p>Third Card: ${formatCard(third)}</p>
+          <h2>${resultText}</h2>
+        </div>
+      `;
+      setTimeout(endGame,1500);
+      return;
+    }
+
   }
   else if(third.value === min || third.value === max){
     pool += bet * 2;
@@ -249,7 +264,7 @@ function resolveTurn(){
 
 function endGame(){
 
-  const samePlayers = confirm("Pool is empty! Play again with SAME players?");
+  const samePlayers = confirm("Pool empty! Play again with SAME players?");
 
   if(samePlayers){
     pool = 0;
