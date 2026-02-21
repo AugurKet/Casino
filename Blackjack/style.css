@@ -1,6 +1,6 @@
 body {
   margin:0;
-  font-family: Arial;
+  font-family:Arial;
   background: radial-gradient(circle at center, #14002b, #000);
   color:#0ff;
   text-align:center;
@@ -37,7 +37,10 @@ body {
   transition:0.2s;
 }
 
-.chip:hover { transform:scale(1.2); }
+.chip.selected {
+  box-shadow:0 0 20px #ff0;
+  border-color:#ff0;
+}
 
 button {
   padding:8px 12px;
@@ -69,16 +72,10 @@ button {
   background:#111;
   border:2px solid #0ff;
   box-shadow:0 0 15px #0ff;
-  animation:deal 0.3s ease;
 }
 
 .back {
   background:linear-gradient(45deg,#222,#555);
-}
-
-@keyframes deal {
-  from { transform:translateY(-30px); opacity:0; }
-  to { transform:translateY(0); opacity:1; }
 }
 
 .message {
