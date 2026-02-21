@@ -5,9 +5,12 @@ let currentPlayerIndex = 0;
 
 const STARTING_BANKROLL = 100;
 
+// Unique colors for player boxes
+const playerColors = ["#ef4444","#f97316","#facc15","#22c55e","#3b82f6","#8b5cf6","#ec4899","#14b8a6","#f43f5e","#a3e635"];
+
 const suits = ["♠", "♥", "♦", "♣"];
 const values = [
-  { name: "A", value: 14 },
+  { name: "A", value: 1 },
   { name: "2", value: 2 },
   { name: "3", value: 3 },
   { name: "4", value: 4 },
@@ -64,7 +67,8 @@ function startGame() {
       name: name || `Player ${i + 1}`,
       bankroll: STARTING_BANKROLL,
       card1: null,
-      card2: null
+      card2: null,
+      color: playerColors[i % playerColors.length]
     });
   }
 
@@ -90,7 +94,7 @@ function renderPlayers() {
 
   players.forEach(p => {
     area.innerHTML += `
-      <div class="playerCard">
+      <div class="playerCard" style="background:${p.color};">
         <h3>${p.name}</h3>
         <div>Bankroll: 💰 ${p.bankroll}</div>
         <div class="cards">
@@ -169,10 +173,11 @@ function resolveTurn() {
         <div class="turnBox">
           <h2>${player.name} WON THE ENTIRE POOL! 🏆</h2>
           <p>Winning Card: ${formatCard(thirdCard)}</p>
+          <br>
+          <button onclick="newGameSamePlayers()">Same Players</button>
+          <button onclick="newGameNewPlayers()">New Players</button>
         </div>
       `;
-
-      setTimeout(() => endGame(`${player.name} wins everything!`), 2500);
       return;
     }
 
@@ -231,12 +236,35 @@ function startNewRound() {
   }, 1500);
 }
 
+// === End Game Options ===
+
+function newGameSamePlayers() {
+  const ante = parseInt(document.getElementById("ante").value);
+  pool = 0;
+  players.forEach(p => {
+    p.bankroll -= ante;
+    pool += ante;
+  });
+  dealTwoCards();
+  currentPlayerIndex = 0;
+  renderPlayers();
+  updatePool();
+  startTurn();
+}
+
+function newGameNewPlayers() {
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("setup").classList.remove("hidden");
+}
+
+// For legacy endGame
 function endGame(message) {
   document.getElementById("turnArea").innerHTML = `
     <div class="turnBox">
       <h2>Game Over</h2>
       <p>${message}</p>
-      <button onclick="resetGame()">Start New Game</button>
+      <button onclick="newGameSamePlayers()">Same Players</button>
+      <button onclick="newGameNewPlayers()">New Players</button>
     </div>
   `;
 }
