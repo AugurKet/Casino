@@ -4,13 +4,11 @@ let deck = [];
 let currentPlayerIndex = 0;
 
 const STARTING_BANKROLL = 100;
-
-// Unique colors for player boxes
-const playerColors = ["#ef4444","#f97316","#facc15","#22c55e","#3b82f6","#8b5cf6","#ec4899","#14b8a6","#f43f5e","#a3e635"];
+const PLAYER_BOX_COLOR = "#355E3B"; // Hunter Green
 
 const suits = ["♠", "♥", "♦", "♣"];
 const values = [
-  { name: "A", value: 1 },
+  { name: "A", value: 14 },
   { name: "2", value: 2 },
   { name: "3", value: 3 },
   { name: "4", value: 4 },
@@ -67,8 +65,7 @@ function startGame() {
       name: name || `Player ${i + 1}`,
       bankroll: STARTING_BANKROLL,
       card1: null,
-      card2: null,
-      color: playerColors[i % playerColors.length]
+      card2: null
     });
   }
 
@@ -94,9 +91,9 @@ function renderPlayers() {
 
   players.forEach(p => {
     area.innerHTML += `
-      <div class="playerCard" style="background:${p.color};">
-        <h3>${p.name}</h3>
-        <div>Bankroll: 💰 ${p.bankroll}</div>
+      <div class="playerCard" style="background:${PLAYER_BOX_COLOR};">
+        <h3 style="color:black; font-weight:bold;">${p.name}</h3>
+        <div style="font-size:18px;">💰 ${p.bankroll}</div>
         <div class="cards">
           ${formatCard(p.card1)} &nbsp; ${formatCard(p.card2)}
         </div>
@@ -107,34 +104,39 @@ function renderPlayers() {
 
 function formatCard(card) {
   const color = (card.suit === "♥" || card.suit === "♦") ? "red" : "black";
-  return `<span style="color:${color}; font-weight:bold;">
+  return `<span style="color:${color}; font-weight:bold; font-size:22px;">
             ${card.name}${card.suit}
           </span>`;
 }
 
 function updatePool() {
-  document.getElementById("poolAmount").innerText = pool;
+  document.getElementById("poolAmount").innerHTML =
+    `<span style="font-size:40px; font-weight:bold;">${pool}</span>`;
 }
 
 function startTurn() {
 
-  if (pool <= 0) {
-    endGame("Pool is empty.");
-    return;
-  }
-
   const player = players[currentPlayerIndex];
 
-  // Auto skip if bankrupt
+  // Bankruptcy check
   if (player.bankroll <= 0) {
-    moveToNextPlayer();
-    return;
+    const topUp = confirm(`${player.name} has no money. Top up?`);
+    if (topUp) {
+      const amount = parseInt(prompt("Enter top-up amount:"));
+      if (amount && amount > 0) {
+        player.bankroll += amount;
+        renderPlayers();
+      }
+    } else {
+      moveToNextPlayer();
+      return;
+    }
   }
 
   document.getElementById("turnArea").innerHTML = `
     <div class="turnBox">
       <h3>${player.name}'s Turn</h3>
-      <p>Bankroll: 💰 ${player.bankroll}</p>
+      <p>💰 ${player.bankroll}</p>
       <label>Bet Amount (max ${Math.min(pool, player.bankroll)}):</label>
       <input type="number" id="betAmount" min="1" max="${Math.min(pool, player.bankroll)}">
       <br><br>
@@ -173,7 +175,6 @@ function resolveTurn() {
         <div class="turnBox">
           <h2>${player.name} WON THE ENTIRE POOL! 🏆</h2>
           <p>Winning Card: ${formatCard(thirdCard)}</p>
-          <br>
           <button onclick="newGameSamePlayers()">Same Players</button>
           <button onclick="newGameNewPlayers()">New Players</button>
         </div>
@@ -203,10 +204,9 @@ function resolveTurn() {
       <h3>${player.name}</h3>
       <p>Third Card: ${formatCard(thirdCard)}</p>
       <h2>${resultMessage}</h2>
+      <button onclick="moveToNextPlayer()">NEXT</button>
     </div>
   `;
-
-  setTimeout(() => moveToNextPlayer(), 1800);
 }
 
 function moveToNextPlayer() {
@@ -225,15 +225,15 @@ function startNewRound() {
   document.getElementById("turnArea").innerHTML = `
     <div class="turnBox">
       <h2>New Round 🎴</h2>
-      <p>Dealing new cards...</p>
+      <button onclick="continueRound()">Continue</button>
     </div>
   `;
+}
 
-  setTimeout(() => {
-    dealTwoCards();
-    renderPlayers();
-    startTurn();
-  }, 1500);
+function continueRound() {
+  dealTwoCards();
+  renderPlayers();
+  startTurn();
 }
 
 // === End Game Options ===
@@ -241,10 +241,12 @@ function startNewRound() {
 function newGameSamePlayers() {
   const ante = parseInt(document.getElementById("ante").value);
   pool = 0;
+
   players.forEach(p => {
     p.bankroll -= ante;
     pool += ante;
   });
+
   dealTwoCards();
   currentPlayerIndex = 0;
   renderPlayers();
@@ -253,28 +255,6 @@ function newGameSamePlayers() {
 }
 
 function newGameNewPlayers() {
-  document.getElementById("game").classList.add("hidden");
-  document.getElementById("setup").classList.remove("hidden");
-}
-
-// For legacy endGame
-function endGame(message) {
-  document.getElementById("turnArea").innerHTML = `
-    <div class="turnBox">
-      <h2>Game Over</h2>
-      <p>${message}</p>
-      <button onclick="newGameSamePlayers()">Same Players</button>
-      <button onclick="newGameNewPlayers()">New Players</button>
-    </div>
-  `;
-}
-
-function resetGame() {
-  players = [];
-  pool = 0;
-  deck = [];
-  currentPlayerIndex = 0;
-
   document.getElementById("game").classList.add("hidden");
   document.getElementById("setup").classList.remove("hidden");
 }
