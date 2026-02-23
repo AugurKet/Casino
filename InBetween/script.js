@@ -1,5 +1,5 @@
 // ================================
-// IN-BETWEEN MULTIPLAYER (STABLE)
+// IN-BETWEEN MULTIPLAYER (ENHANCED)
 // ================================
 
 let players = [];
@@ -7,8 +7,7 @@ let pool = 0;
 let deck = [];
 let currentPlayerIndex = 0;
 let anteAmount = 0;
-
-// ---------- CARD DATA ----------
+let revealInterval = null;
 
 const suits = ["♠","♥","♦","♣"];
 const values = [
@@ -37,7 +36,7 @@ function shuffleDeck(){
   }
 }
 
-// ---------- START GAME ----------
+// ---------- START ----------
 
 function startGame(){
 
@@ -63,10 +62,9 @@ function startGame(){
 
   for(let i=0;i<numPlayers;i++){
     const name = prompt(`Enter name for Player ${i+1}`) || `Player ${i+1}`;
-
     players.push({
       name: name,
-      bankroll: 100,   // 🔥 starting bankroll now 100
+      bankroll: 100,
       total: 0,
       card1: null,
       card2: null
@@ -80,8 +78,6 @@ function startGame(){
 
   dealNewRound();
 }
-
-// ---------- ANTE ----------
 
 function collectAnte(){
   players.forEach(p=>{
@@ -125,12 +121,16 @@ function renderPlayers(){
   const area = document.getElementById("playersArea");
   area.innerHTML = "";
 
-  players.forEach(p=>{
+  players.forEach((p,index)=>{
 
     const totalDisplay = p.total >= 0 ? `(+${p.total})` : `(${p.total})`;
 
+    const bgColor = index === currentPlayerIndex
+      ? "#39FF14"   // Neon Green
+      : "#355E3B";  // Hunter Green
+
     area.innerHTML += `
-      <div class="playerCard" style="background-color:#355E3B;">
+      <div class="playerCard" style="background-color:${bgColor}; transition:0.3s;">
         <h3>${p.name} ${totalDisplay}</h3>
         <div>💰 ${p.bankroll}</div>
         <div class="cards">
@@ -158,27 +158,29 @@ function startTurn(){
     return;
   }
 
+  renderPlayers();
+
   const player = players[currentPlayerIndex];
 
   if(player.bankroll <= 0){
-    const topUp = confirm(`${player.name} is bankrupt. Top up?`);
-    if(topUp){
-      const amt = parseInt(prompt("Enter top-up amount:"));
-      if(amt && amt > 0){
-        player.bankroll += amt;
-      }
-    }
+    immediateTopUp(player);
   }
 
   const maxBet = Math.min(pool, player.bankroll);
 
   document.getElementById("turnArea").innerHTML = `
-    <div class="turnBox">
-      <h3>${player.name}'s Turn</h3>
-      <label>Bet (max ${maxBet})</label>
-      <input type="number" id="betAmount" min="1" max="${maxBet}">
-      <button onclick="resolveTurn()">Bet</button>
-      <button onclick="skipTurn()">Skip</button>
+    <div style="display:flex; justify-content:center; gap:20px;">
+      <div class="turnBox" style="width:420px;">
+        <h3>${player.name}'s Turn</h3>
+        <label>Bet (max ${maxBet})</label>
+        <input type="number" id="betAmount" min="1" max="${maxBet}" style="width:120px;">
+        <button onclick="resolveTurn()">Bet</button>
+        <button onclick="skipTurn()">Skip</button>
+      </div>
+
+      <div class="turnBox" id="revealBox" style="width:150px; display:flex; align-items:center; justify-content:center; font-size:28px;">
+        ?
+      </div>
     </div>
   `;
 }
@@ -188,13 +190,24 @@ function skipTurn(){
   startTurn();
 }
 
+// ---------- BANKRUPT ----------
+
+function immediateTopUp(player){
+  const topUp = confirm(`${player.name} is bankrupt. Top up now?`);
+  if(topUp){
+    const amt = parseInt(prompt("Enter top-up amount:"));
+    if(amt && amt > 0){
+      player.bankroll += amt;
+    }
+  }
+}
+
 // ---------- RESOLVE ----------
 
 function resolveTurn(){
 
   const bet = parseInt(document.getElementById("betAmount").value);
   const player = players[currentPlayerIndex];
-
   const maxBet = Math.min(pool, player.bankroll);
 
   if(!bet || bet <= 0 || bet > maxBet){
@@ -204,59 +217,60 @@ function resolveTurn(){
 
   const third = deck.pop();
 
-  const min = Math.min(player.card1.value, player.card2.value);
-  const max = Math.max(player.card1.value, player.card2.value);
+  const revealBox = document.getElementById("revealBox");
 
-  let resultText = "";
+  // Fast spinning animation
+  revealInterval = setInterval(()=>{
+    const randomCard = deck[Math.floor(Math.random()*deck.length)];
+    revealBox.innerText = formatCard(randomCard);
+  }, 50);
 
-  if(third.value > min && third.value < max){
+  setTimeout(()=>{
 
-    pool -= bet;
-    player.bankroll += bet;
-    player.total += bet;
-    resultText = "WIN 🎉";
+    clearInterval(revealInterval);
+    revealBox.innerText = formatCard(third);
 
-    // 🔥 STOP GAME IF POOL EMPTY AFTER WIN
+    const min = Math.min(player.card1.value, player.card2.value);
+    const max = Math.max(player.card1.value, player.card2.value);
+
+    let resultText = "";
+
+    if(third.value > min && third.value < max){
+      pool -= bet;
+      player.bankroll += bet;
+      player.total += bet;
+      resultText = "WIN 🎉";
+    }
+    else if(third.value === min || third.value === max){
+      pool += bet * 2;
+      player.bankroll -= bet * 2;
+      player.total -= bet * 2;
+      resultText = "DOUBLE LOSS 💀";
+    }
+    else{
+      pool += bet;
+      player.bankroll -= bet;
+      player.total -= bet;
+      resultText = "LOSE ❌";
+    }
+
+    if(player.bankroll <= 0){
+      immediateTopUp(player);
+    }
+
+    updatePool();
+    renderPlayers();
+
     if(pool === 0){
-      updatePool();
-      renderPlayers();
-      document.getElementById("turnArea").innerHTML = `
-        <div class="turnBox">
-          <p>Third Card: ${formatCard(third)}</p>
-          <h2>${resultText}</h2>
-        </div>
-      `;
       setTimeout(endGame,1500);
       return;
     }
 
-  }
-  else if(third.value === min || third.value === max){
-    pool += bet * 2;
-    player.bankroll -= bet * 2;
-    player.total -= bet * 2;
-    resultText = "DOUBLE LOSS 💀";
-  }
-  else{
-    pool += bet;
-    player.bankroll -= bet;
-    player.total -= bet;
-    resultText = "LOSE ❌";
-  }
+    setTimeout(()=>{
+      currentPlayerIndex++;
+      startTurn();
+    },1500);
 
-  updatePool();
-  renderPlayers();
-
-  document.getElementById("turnArea").innerHTML = `
-    <div class="turnBox">
-      <p>Third Card: ${formatCard(third)}</p>
-      <h2>${resultText}</h2>
-    </div>
-  `;
-
-  setTimeout(()=>{
-    currentPlayerIndex++;
-    startTurn();
   },1500);
 }
 
