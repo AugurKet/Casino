@@ -18,12 +18,12 @@ body{
 }
 
 button{
-  background:gold;
-  border:none;
-  padding:8px 14px;
-  font-weight:bold;
   cursor:pointer;
+  font-weight:bold;
+  border:none;
 }
+
+/* ===== PLAYER BOX ===== */
 
 .players{
   display:flex;
@@ -35,10 +35,11 @@ button{
 
 .player{
   background:#355e3b; /* Hunter Green */
-  padding:15px;
-  border-radius:15px;
-  width:240px;
+  padding:18px;
+  border-radius:18px;
+  width:260px;
   transition:0.3s;
+  box-shadow:0 6px 15px rgba(0,0,0,0.5);
 }
 
 .active{
@@ -46,24 +47,39 @@ button{
   color:black;
 }
 
+.player h3{
+  margin:5px 0;
+}
+
+.positive{
+  color:#00ffcc;
+}
+
+.negative{
+  color:#ff4d4d;
+}
+
+/* ===== CARDS ===== */
+
 .cards{
   display:flex;
   justify-content:center;
-  gap:10px;
-  margin:10px 0;
+  gap:12px;
+  margin:12px 0;
 }
 
 .card{
-  width:60px;
-  height:90px;
+  width:65px;
+  height:95px;
   background:white;
-  border-radius:8px;
+  border-radius:10px;
   color:black;
   display:flex;
   align-items:center;
   justify-content:center;
   font-weight:bold;
   font-size:20px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.6);
 }
 
 .red{ color:red; }
@@ -74,13 +90,52 @@ button{
   color:transparent;
 }
 
+/* ===== BET AREA ===== */
+
 .bet-area{
-  margin-top:10px;
+  margin-top:12px;
 }
 
 input{
-  width:120px;
-  padding:4px;
+  width:140px;
+  padding:6px;
+  border-radius:6px;
+  border:none;
+  text-align:center;
+  font-weight:bold;
+}
+
+/* ===== REAL BUTTON STYLE ===== */
+
+.action-btn{
+  margin-top:8px;
+  padding:8px 16px;
+  border-radius:8px;
+  font-weight:bold;
+  font-size:14px;
+  letter-spacing:0.5px;
+  transition:0.2s;
+  box-shadow:0 4px 0 rgba(0,0,0,0.4);
+}
+
+.bet-btn{
+  background:linear-gradient(to bottom,#ffd700,#c9a000);
+  color:black;
+}
+
+.bet-btn:active{
+  transform:translateY(4px);
+  box-shadow:0 0 0 rgba(0,0,0,0.4);
+}
+
+.skip-btn{
+  background:linear-gradient(to bottom,#666,#333);
+  color:white;
+}
+
+.skip-btn:active{
+  transform:translateY(4px);
+  box-shadow:0 0 0 rgba(0,0,0,0.4);
 }
 
 .emoji-bank{
