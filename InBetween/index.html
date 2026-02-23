@@ -8,20 +8,16 @@
 <body>
 
 <div class="top-bar">
-  <h1>🎰 In-Between</h1>
-
-  <div id="thirdCardContainer">
-    <div id="thirdCard" class="card back large"></div>
+  <div class="title-area">
+    <h1>🎰 In-Between</h1>
+    <div id="thirdCardTop" class="card back"></div>
   </div>
+
+  <button id="startBtn">Start Game</button>
+  <h2 id="poolDisplay">Pool: 0</h2>
 </div>
 
-<div id="setupArea">
-  <button onclick="setupPlayers()">Start Game</button>
-</div>
-
-<h2 id="poolDisplay">Pool: 0</h2>
-
-<div id="playersContainer"></div>
+<div id="playersContainer" class="players"></div>
 
 <script src="script.js"></script>
 </body>
