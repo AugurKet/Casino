@@ -30,7 +30,8 @@ function setupGame(){
       bankroll:100,
       wins:0,
       card1:null,
-      card2:null
+      card2:null,
+      active:true
     });
   }
 
@@ -43,16 +44,18 @@ function startRound(){
   shuffle(deck);
 
   players.forEach(p=>{
+    if(!p.active) return;
+
     if(p.bankroll <=0){
-      let top = confirm(p.name+" is bankrupt. Top up 100?");
-      if(top) p.bankroll = 100;
+      handleBankrupt(p);
     }
 
-    p.bankroll -= ante;
-    pool += ante;
-
-    p.card1 = deck.pop();
-    p.card2 = deck.pop();
+    if(p.active){
+      p.bankroll -= ante;
+      pool += ante;
+      p.card1 = deck.pop();
+      p.card2 = deck.pop();
+    }
   });
 
   updatePool();
@@ -60,6 +63,28 @@ function startRound(){
   currentPlayerIndex = 0;
   gameActive = true;
   highlightPlayer();
+}
+
+function handleBankrupt(player){
+  let choice = prompt(
+    player.name + " is bankrupt.\nEnter amount to top up OR type Q to quit:"
+  );
+
+  if(!choice) {
+    player.active = false;
+    return;
+  }
+
+  if(choice.toLowerCase() === "q"){
+    player.active = false;
+  } else {
+    let amt = parseInt(choice);
+    if(amt > 0){
+      player.bankroll += amt;
+    } else {
+      player.active = false;
+    }
+  }
 }
 
 function buildDeck(){
@@ -84,12 +109,18 @@ function renderPlayers(){
   container.innerHTML="";
 
   players.forEach((p,i)=>{
+    if(!p.active) return;
+
     const div=document.createElement("div");
     div.className="player";
     div.id="player-"+i;
 
+    let winClass = p.wins >=0 ? "positive" : "negative";
+
     div.innerHTML=`
-      <h3>${p.name} (${p.wins>=0?"+":""}${p.wins})</h3>
+      <h3>${p.name} (<span class="${winClass}">
+      ${p.wins>=0?"+":""}${p.wins}</span>)</h3>
+
       <div class="emoji-bank">💰 ${p.bankroll}</div>
       <div>Ante: ${ante}</div>
 
@@ -101,8 +132,8 @@ function renderPlayers(){
       <div class="bet-area">
         <input type="number" id="bet-${i}" placeholder="Bet" min="1" max="${pool}">
         <br>
-        <button onclick="placeBet(${i})">Bet</button>
-        <button onclick="skipTurn(${i})">Skip</button>
+        <button class="action-btn bet-btn" onclick="placeBet(${i})">BET</button>
+        <button class="action-btn skip-btn" onclick="skipTurn(${i})">SKIP</button>
       </div>
     `;
 
@@ -132,9 +163,8 @@ function placeBet(i){
   if(!bet || bet<=0 || bet>pool) return alert("Invalid bet");
 
   let player=players[i];
-
-  // rapid animation
   const third=document.getElementById("thirdCardTop");
+
   let interval=setInterval(()=>{
     let temp=deck[Math.floor(Math.random()*deck.length)];
     third.className="card";
@@ -158,7 +188,7 @@ function placeBet(i){
       gameActive=false;
 
       setTimeout(()=>{
-        let again=confirm(player.name+" won entire pool! Play again with same players?");
+        let again=confirm(player.name+" won entire pool! Continue with same players?");
         if(again){
           startRound();
         }else{
@@ -190,10 +220,13 @@ function placeBet(i){
 }
 
 function nextPlayer(){
-  currentPlayerIndex++;
-  if(currentPlayerIndex>=players.length){
-    currentPlayerIndex=0;
-  }
+  do{
+    currentPlayerIndex++;
+    if(currentPlayerIndex>=players.length){
+      currentPlayerIndex=0;
+    }
+  } while(!players[currentPlayerIndex].active);
+
   highlightPlayer();
 }
 
