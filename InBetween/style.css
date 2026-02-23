@@ -6,10 +6,7 @@ body {
   text-align: center;
 }
 
-h1 {
-  color: gold;
-  margin-top: 20px;
-}
+h1 { color: gold; margin-top: 20px; }
 
 #playersContainer {
   display: flex;
@@ -18,12 +15,11 @@ h1 {
 }
 
 .player-box {
-  background: rgba(20, 60, 40, 0.9);
+  background: rgba(20,60,40,0.9);
   border-radius: 15px;
   padding: 20px;
   margin: 15px;
   width: 260px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.5);
   transition: 0.3s;
 }
 
@@ -70,9 +66,7 @@ h1 {
   font-size: 14px;
 }
 
-.playing-card .center {
-  font-size: 24px;
-}
+.playing-card .center { font-size: 24px; }
 
 .playing-card.large {
   width: 80px;
@@ -95,6 +89,4 @@ button {
   font-weight: bold;
 }
 
-#thirdCardArea {
-  margin-top: 30px;
-}
+#thirdCardArea { margin-top: 30px; }
