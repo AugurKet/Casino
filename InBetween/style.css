@@ -6,12 +6,76 @@ body {
   text-align: center;
 }
 
-h1 { color: gold; margin-top: 20px; }
+/* ===== TOP BAR ===== */
+
+.top-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+h1 {
+  color: gold;
+}
+
+/* ===== THIRD CARD ===== */
+
+#thirdCardContainer {
+  display: flex;
+  align-items: center;
+}
+
+.card {
+  width: 60px;
+  height: 90px;
+  border-radius: 8px;
+  position: relative;
+  border: 2px solid gold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  background: white;
+}
+
+.card.large {
+  width: 80px;
+  height: 120px;
+}
+
+.card.red { color: red; }
+.card.black { color: black; }
+
+/* ===== CUSTOM CARD BACK DESIGN ===== */
+
+.card.back {
+  background: repeating-linear-gradient(
+    45deg,
+    #8b0000,
+    #8b0000 10px,
+    #b22222 10px,
+    #b22222 20px
+  );
+  border: 3px solid gold;
+}
+
+/* To design your own back:
+   Change the background above.
+   You can use:
+   - gradient
+   - image: url("yourimage.png")
+   - pattern from csspattern.com
+*/
+
+/* ===== PLAYERS ===== */
 
 #playersContainer {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
+  margin-top: 30px;
 }
 
 .player-box {
@@ -35,30 +99,14 @@ h1 { color: gold; margin-top: 20px; }
   margin-top: 10px;
 }
 
-.playing-card {
-  width: 60px;
-  height: 90px;
-  background: white;
-  border-radius: 8px;
-  border: 2px solid gold;
-  position: relative;
-  font-weight: bold;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.playing-card.red { color: red; }
-.playing-card.black { color: black; }
-
-.playing-card .top {
+.card .top {
   position: absolute;
   top: 5px;
   left: 5px;
   font-size: 14px;
 }
 
-.playing-card .bottom {
+.card .bottom {
   position: absolute;
   bottom: 5px;
   right: 5px;
@@ -66,12 +114,8 @@ h1 { color: gold; margin-top: 20px; }
   font-size: 14px;
 }
 
-.playing-card .center { font-size: 24px; }
-
-.playing-card.large {
-  width: 80px;
-  height: 120px;
-  font-size: 26px;
+.card .center {
+  font-size: 24px;
 }
 
 .bet-input {
@@ -88,5 +132,3 @@ button {
   cursor: pointer;
   font-weight: bold;
 }
-
-#thirdCardArea { margin-top: 30px; }
