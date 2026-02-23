@@ -7,7 +7,13 @@
 </head>
 <body>
 
-<h1>🎰 In-Between</h1>
+<div class="top-bar">
+  <h1>🎰 In-Between</h1>
+
+  <div id="thirdCardContainer">
+    <div id="thirdCard" class="card back large"></div>
+  </div>
+</div>
 
 <div id="setupArea">
   <button onclick="setupPlayers()">Start Game</button>
@@ -16,13 +22,6 @@
 <h2 id="poolDisplay">Pool: 0</h2>
 
 <div id="playersContainer"></div>
-
-<div id="thirdCardArea">
-  <h3>Third Card</h3>
-  <div id="thirdCardWrapper">
-    <div id="thirdCard" class="playing-card large"></div>
-  </div>
-</div>
 
 <script src="script.js"></script>
 </body>
