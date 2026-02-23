@@ -3,46 +3,66 @@ let currentPlayerIndex = 0;
 let pool = 0;
 let deck = [];
 let gameActive = false;
+const ANTE = 5;
 
-const suits = ["♠", "♥", "♦", "♣"];
+const suits = ["♠","♥","♦","♣"];
 const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 
-function getCardValue(v) {
-  if (v === "A") return 1;
-  if (["J","Q","K"].includes(v)) return 10;
+function getCardValue(v){
+  if(v==="A") return 1;
+  if(["J","Q","K"].includes(v)) return 10;
   return parseInt(v);
 }
 
-function createDeck() {
-  deck = [];
-  for (let s of suits) {
-    for (let v of values) {
+function createDeck(){
+  deck=[];
+  for(let s of suits){
+    for(let v of values){
       deck.push(v+s);
     }
   }
-  deck.sort(() => Math.random() - 0.5);
+  deck.sort(()=>Math.random()-0.5);
 }
 
-function drawCard() {
-  if (deck.length === 0) createDeck();
+function drawCard(){
+  if(deck.length===0) createDeck();
   return deck.pop();
 }
 
-function startGame() {
-  const input = document.getElementById("playerNames").value.trim();
-  if (!input) return alert("Enter names");
+/* ========================= */
+/* SETUP                     */
+/* ========================= */
 
-  const names = input.split(",").map(n=>n.trim());
+function setupPlayers(){
+  const count=parseInt(prompt("Enter number of players (2-6):"));
+  if(!count||count<2||count>6) return alert("Invalid number");
 
-  players = names.map(n=>({
-    name:n,
-    bankroll:100,
-    total:0,
-    card1:null,
-    card2:null
-  }));
+  players=[];
+  for(let i=0;i<count;i++){
+    const name=prompt("Enter name for Player "+(i+1));
+    players.push({
+      name:name||("Player"+(i+1)),
+      bankroll:100,
+      total:0,
+      card1:null,
+      card2:null
+    });
+  }
 
+  startRound();
+}
+
+/* ========================= */
+/* ROUND START               */
+/* ========================= */
+
+function startRound(){
   pool=0;
+  players.forEach(p=>{
+    p.bankroll-=ANTE;
+    pool+=ANTE;
+  });
+
   currentPlayerIndex=0;
   gameActive=true;
   createDeck();
@@ -50,6 +70,8 @@ function startGame() {
   updatePool();
   nextTurn();
 }
+
+/* ========================= */
 
 function renderPlayers(){
   const container=document.getElementById("playersContainer");
@@ -63,11 +85,13 @@ function renderPlayers(){
     div.innerHTML=`
       <h3>${p.name} (${p.total>=0?"+":""}${p.total})</h3>
       <div>🪙 ${p.bankroll}</div>
+      <div>Ante: ${ANTE}</div>
       <div class="cards-row" id="cards-${i}"></div>
       <input class="bet-input" id="bet-${i}" type="number" min="1" placeholder="Bet">
       <br>
       <button onclick="placeBet(${i})">Bet</button>
     `;
+
     container.appendChild(div);
   });
 }
@@ -85,8 +109,10 @@ function renderCard(card){
   </div>`;
 }
 
+/* ========================= */
+
 function nextTurn(){
-  if(!gameActive||players.length===0) return;
+  if(!gameActive) return;
 
   players.forEach((_,i)=>{
     document.getElementById("player-"+i)?.classList.remove("active-turn");
@@ -103,6 +129,8 @@ function nextTurn(){
     renderCard(player.card1)+renderCard(player.card2);
 }
 
+/* ========================= */
+
 function placeBet(index){
   if(index!==currentPlayerIndex) return;
 
@@ -114,6 +142,8 @@ function placeBet(index){
     resolveBet(player,bet,third);
   });
 }
+
+/* ========================= */
 
 function spinThirdCard(callback){
   const box=document.getElementById("thirdCard");
@@ -130,6 +160,8 @@ function spinThirdCard(callback){
     callback(real);
   },1500);
 }
+
+/* ========================= */
 
 function resolveBet(player,bet,thirdCard){
   const v1=getCardValue(player.card1.slice(0,-1));
@@ -156,24 +188,20 @@ function resolveBet(player,bet,thirdCard){
     }
   }
 
-  if(pool>=players.length*100){
-    alert(player.name+" wins entire pool!");
-    gameActive=false;
-    if(confirm("Play again?")){
-      players.forEach(p=>{p.bankroll=100;p.total=0;});
-      pool=0;
-      gameActive=true;
-      createDeck();
-      renderPlayers();
-      updatePool();
-      nextTurn();
+  updatePool();
+  renderPlayers();
+
+  currentPlayerIndex++;
+  if(currentPlayerIndex>=players.length){
+    if(confirm("New round?")){
+      startRound();
+      return;
+    }else{
+      gameActive=false;
       return;
     }
   }
 
-  updatePool();
-  renderPlayers();
-  currentPlayerIndex=(currentPlayerIndex+1)%players.length;
   setTimeout(nextTurn,1000);
 }
 
