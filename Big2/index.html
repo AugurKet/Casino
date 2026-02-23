@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大老二 · 三人版</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1e4b2e, #2a6e3a);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .game-container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,215,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: gold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin: 0 0 20px 0;
+            font-size: 2.5em;
+            letter-spacing: 4px;
+        }
+        .players-area {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+        .player-card {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            padding: 15px;
+            flex: 1;
+            border: 2px solid #d4af37;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .player-card.active {
+            border-color: #ff4444;
+            box-shadow: 0 0 20px rgba(255,68,68,0.5);
+            transform: scale(1.02);
+        }
+        .player-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ffd700;
+            display: flex;
+            justify-content: space-between;
+        }
+        .player-hand {
+            font-size: 1.1em;
+            line-height: 1.8;
+            min-height: 100px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+        }
+        .card-count {
+            background: #ffd700;
+            color: black;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 0.8em;
+        }
+        .center-area {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #d4af37;
+        }
+        .last-play {
+            text-align: center;
+            font-size: 1.5em;
+            color: white;
+            padding: 15px;
+            background: rgba(255,215,0,0.1);
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        .last-play-cards {
+            font-size: 2em;
+            letter-spacing: 5px;
+            color: #ffd700;
+        }
+        .message {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            margin: 10px 0;
+            min-height: 30px;
+        }
+        .player-controls {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .hand-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .card {
+            background: white;
+            color: black;
+            width: 60px;
+            height: 90px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+            border: 2px solid #333;
+            position: relative;
+        }
+        .card.selected {
+            transform: translateY(-20px);
+            border-color: #ff4444;
+            box-shadow: 0 8px 16px rgba(255,68,68,0.4);
+        }
+        .card.red {
+            color: #ff4444;
+        }
+        .card.black {
+            color: #333;
+        }
+        .card-suit {
+            font-size: 1.5em;
+        }
+        .card-rank {
+            font-size: 1.2em;
+        }
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        button {
+            padding: 12px 30px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            background: #ffd700;
+            color: #1e4b2e;
+            border: 2px solid #b8860b;
+        }
+        button:hover {
+            transform: scale(1.05);
+            background: #ffed4a;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        button.secondary {
+            background: #666;
+            color: white;
+            border-color: #333;
+        }
+        .game-over {
+            text-align: center;
+            font-size: 2em;
+            color: gold;
+            padding: 30px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+        .new-game-btn {
+            background: #4CAF50;
+            color: white;
+            font-size: 1.5em;
+            padding: 15px 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <h1>♠ 大老二 ♥</h1>
+        
+        <div class="players-area" id="playersArea"></div>
+        
+        <div class="center-area">
+            <div class="last-play">
+                <div>上一手牌</div>
+                <div class="last-play-cards" id="lastPlayCards">-</div>
+                <div id="lastPlayer" style="font-size: 1em; color: #aaa;"></div>
+            </div>
+            <div class="message" id="message">游戏开始！</div>
+        </div>
+        
+        <div class="player-controls" id="playerControls">
+            <h3 style="color: white; text-align: center; margin: 0 0 10px 0;">你的手牌</h3>
+            <div class="hand-cards" id="playerHand"></div>
+            <div class="buttons">
+                <button onclick="playCards()">出牌</button>
+                <button class="secondary" onclick="pass()">过牌</button>
+            </div>
+        </div>
+        
+        <div id="gameOverScreen" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 牌的定义
+        const Suit = {
+            CLUB: { name: 'CLUB', symbol: '♣', value: 1, color: 'black' },
+            DIAMOND: { name: 'DIAMOND', symbol: '♦', value: 2, color: 'red' },
+            HEART: { name: 'HEART', symbol: '♥', value: 3, color: 'red' },
+            SPADE: { name: 'SPADE', symbol: '♠', value: 4, color: 'black' }
+        };
+        
+        const Rank = {
+            THREE: { name: '3', value: 3 },
+            FOUR: { name: '4', value: 4 },
+            FIVE: { name: '5', value: 5 },
+            SIX: { name: '6', value: 6 },
+            SEVEN: { name: '7', value: 7 },
+            EIGHT: { name: '8', value: 8 },
+            NINE: { name: '9', value: 9 },
+            TEN: { name: '10', value: 10 },
+            JACK: { name: 'J', value: 11 },
+            QUEEN: { name: 'Q', value: 12 },
+            KING: { name: 'K', value: 13 },
+            ACE: { name: 'A', value: 14 },
+            TWO: { name: '2', value: 15 }
+        };
+        
+        // 游戏状态
+        let game = {
+            players: [],
+            currentPlayerIdx: 0,
+            lastPlay: [],
+            lastPlayerIdx: -1,
+            firstTurn: true,
+            passCount: 0,
+            gameOver: false,
+            winner: null,
+            selectedCards: []
+        };
+        
+        // 初始化游戏
+        function initGame() {
+            // 创建玩家
+            game.players = [
+                { name: '你', hand: [], isHuman: true, passed: false },
+                { name: '电脑1', hand: [], isHuman: false, passed: false },
+                { name: '电脑2', hand: [], isHuman: false, passed: false }
+            ];
+            
+            // 创建牌组
+            let deck = [];
+            for (let suit of Object.values(Suit)) {
+                for (let rank of Object.values(Rank)) {
+                    deck.push({ suit, rank });
+                }
+            }
+            
+            // 洗牌
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            
+            // 发牌
+            for (let i = 0; i < deck.length; i++) {
+                const playerIdx = i % 3;
+                game.players[playerIdx].hand.push(deck[i]);
+            }
+            
+            // 排序手牌
+            game.players.forEach(p => {
+                p.hand.sort((a, b) => {
+                    if (a.rank.value !== b.rank.value) return a.rank.value - b.rank.value;
+                    return a.suit.value - b.suit.value;
+                });
+            });
+            
+            // 找到持有梅花3的玩家
+            for (let i = 0; i < game.players.length; i++) {
+                const hasClubThree = game.players[i].hand.some(c => 
+                    c.suit === Suit.CLUB && c.rank === Rank.THREE);
+                if (hasClubThree) {
+                    game.currentPlayerIdx = i;
+                    break;
+                }
+            }
+            
+            game.lastPlay = [];
+            game.lastPlayerIdx = -1;
+            game.firstTurn = true;
+            game.passCount = 0;
+            game.gameOver = false;
+            game.winner = null;
+            game.selectedCards = [];
+            
+            updateUI();
+            updateMessage(`游戏开始！轮到 ${game.players[game.currentPlayerIdx].name} 出牌`);
+            
+            // 如果是电脑回合，自动出牌
+            if (!game.players[game.currentPlayerIdx].isHuman) {
+                setTimeout(computerPlay, 1000);
+            }
+        }
+        
+        // 更新UI
+        function updateUI() {
+            // 更新玩家区域
+            const playersArea = document.getElementById('playersArea');
+            playersArea.innerHTML = '';
+            
+            game.players.forEach((player, idx) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = `player-card ${idx === game.currentPlayerIdx && !game.gameOver ? 'active' : ''}`;
+                
+                const handPreview = player.hand.map(c => {
+                    const color = c.suit.color === 'red' ? 'red' : 'black';
+                    return `<span style="color: ${color}">${c.suit.symbol}${c.rank.name}</span>`;
+                }).join(' ');
+                
+                playerDiv.innerHTML = `
+                    <div class="player-name">
+                        ${player.name}
+                        <span class="card-count">${player.hand.length}张</span>
+                    </div>
+                    <div class="player-hand">
+                        ${player.isHuman ? '（你的手牌在下方）' : handPreview || '无牌'}
+                    </div>
+                `;
+                
+                playersArea.appendChild(playerDiv);
+            });
+            
+            // 更新上一手牌
+            const lastPlayDiv = document.getElementById('lastPlayCards');
+            if (game.lastPlay.length > 0) {
+                lastPlayDiv.innerHTML = game.lastPlay.map(c => 
+                    `<span style="color: ${c.suit.color}">${c.suit.symbol}${c.rank.name}</span>`
+                ).join(' ');
+            } else {
+                lastPlayDiv.innerHTML = '-';
+            }
+            
+            document.getElementById('lastPlayer').innerHTML = 
+                game.lastPlayerIdx >= 0 ? `由 ${game.players[game.lastPlayerIdx].name} 出牌` : '';
+            
+            // 更新玩家手牌显示
+            if (!game.gameOver) {
+                const playerHand = document.getElementById('playerHand');
+                const player = game.players[0];
+                
+                playerHand.innerHTML = '';
+                player.hand.forEach((card, idx) => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = `card ${card.suit.color} ${game.selectedCards.includes(idx) ? 'selected' : ''}`;
+                    cardDiv.onclick = () => toggleCardSelection(idx);
+                    cardDiv.innerHTML = `
+                        <div class="card-suit">${card.suit.symbol}</div>
+                        <div class="card-rank">${card.rank.name}</div>
+                    `;
+                    playerHand.appendChild(cardDiv);
+                });
+            }
+            
+            // 检查游戏结束
+            checkGameOver();
+        }
+        
+        // 切换卡牌选择
+        function toggleCardSelection(idx) {
+            if (game.gameOver || game.currentPlayerIdx !== 0) return;
+            
+            const index = game.selectedCards.indexOf(idx);
+            if (index === -1) {
+                game.selectedCards.push(idx);
+            } else {
+                game.selectedCards.splice(index, 1);
+            }
+            
+            // 排序选中的卡牌
+            game.selectedCards.sort((a, b) => a - b);
+            updateUI();
+        }
+        
+        // 出牌
+        function playCards() {
+            if (game.gameOver || game.currentPlayerIdx !== 0) return;
+            
+            const player = game.players[0];
+            const selectedCards = game.selectedCards.map(i => player.hand[i]);
+            
+            if (selectedCards.length === 0) {
+                updateMessage('请选择要出的牌！');
+                return;
+            }
+            
+            if (!isValidPlay(selectedCards, player)) {
+                updateMessage('无效的出牌！');
+                return;
+            }
+            
+            // 执行出牌
+            executePlay(0, selectedCards);
+        }
+        
+        // 过牌
+        function pass() {
+            if (game.gameOver || game.currentPlayerIdx !== 0) return;
+            
+            // 如果是第一手，不能过牌
+            if (game.firstTurn) {
+                updateMessage('第一手必须出牌！');
+                return;
+            }
+            
+            // 如果自己是上一轮的出牌者，不能过牌
+            if (game.lastPlayerIdx === 0) {
+                updateMessage('你是上一轮的出牌者，必须出牌！');
+                return;
+            }
+            
+            game.passCount++;
+            game.currentPlayerIdx = (game.currentPlayerIdx + 1) % 3;
+            game.selectedCards = [];
+            
+            updateUI();
+            updateMessage(`${game.players[0].name} 过牌`);
+            
+            // 检查是否所有人都过牌
+            if (game.passCount >= 2) {
+                game.lastPlay = [];
+                game.passCount = 0;
+                updateMessage('所有人过牌，新的一轮开始');
+            }
+            
+            // 电脑回合
+            if (!game.players[game.currentPlayerIdx].isHuman) {
+                setTimeout(computerPlay, 1000);
+            }
+        }
+        
+        // 电脑出牌
+        function computerPlay() {
+            if (game.gameOver) return;
+            
+            const player = game.players[game.currentPlayerIdx];
+            
+            // 如果是第一手，出梅花3
+            if (game.firstTurn) {
+                const clubThree = player.hand.find(c => 
+                    c.suit === Suit.CLUB && c.rank === Rank.THREE);
+                if (clubThree) {
+                    executePlay(game.currentPlayerIdx, [clubThree]);
+                }
+                return;
+            }
+            
+            // 尝试出牌
+            let played = false;
+            
+            if (game.lastPlay.length === 0) {
+                // 新的一轮，出最小的牌
+                executePlay(game.currentPlayerIdx, [player.hand[0]]);
+                played = true;
+            } else {
+                // 尝试管上
+                const handType = getHandType(game.lastPlay);
+                const possiblePlays = [];
+                
+                if (handType === 'single') {
+                    // 找单张
+                    for (let card of player.hand) {
+                        if (compareCards(card, game.lastPlay[0]) > 0) {
+                            possiblePlays.push([card]);
+                        }
+                    }
+                } else if (handType === 'pair') {
+                    // 找对子
+                    for (let i = 0; i < player.hand.length - 1; i++) {
+                        if (player.hand[i].rank === player.hand[i+1].rank) {
+                            const pair = [player.hand[i], player.hand[i+1]];
+                            if (compareHands(pair, game.lastPlay) > 0) {
+                                possiblePlays.push(pair);
+                            }
+                        }
+                    }
+                }
+                
+                if (possiblePlays.length > 0) {
+                    // 出最小的能管上的牌
+                    possiblePlays.sort((a, b) => compareHands(a, b));
+                    executePlay(game.currentPlayerIdx, possiblePlays[0]);
+                    played = true;
+                }
+            }
+            
+            if (!played) {
+                // 没有牌可出，过牌
+                game.passCount++;
+                game.currentPlayerIdx = (game.currentPlayerIdx + 1) % 3;
+                updateUI();
+                updateMessage(`${player.name} 过牌`);
+                
+                if (game.passCount >= 2) {
+                    game.lastPlay = [];
+                    game.passCount = 0;
+                    updateMessage('所有人过牌，新的一轮开始');
+                }
+                
+                // 继续下一个电脑或玩家回合
+                if (!game.gameOver) {
+                    if (game.players[game.currentPlayerIdx].isHuman) {
+                        updateMessage('轮到你了！');
+                    } else {
+                        setTimeout(computerPlay, 1000);
+                    }
+                }
+            }
+        }
+        
+        // 执行出牌
+        function executePlay(playerIdx, cards) {
+            const player = game.players[playerIdx];
+            
+            // 移除出的牌
+            cards.forEach(card => {
+                const index = player.hand.findIndex(c => 
+                    c.suit === card.suit && c.rank === card.rank);
+                if (index !== -1) {
+                    player.hand.splice(index, 1);
+                }
+            });
+            
+            // 更新游戏状态
+            game.lastPlay = cards;
+            game.lastPlayerIdx = playerIdx;
+            game.firstTurn = false;
+            game.passCount = 0;
+            game.selectedCards = [];
+            
+            // 检查游戏是否结束
+            if (player.hand.length === 0) {
+                game.gameOver = true;
+                game.winner = player;
+                updateUI();
+                showGameOver();
+                return;
+            }
+            
+            // 轮到下一个玩家
+            game.currentPlayerIdx = (playerIdx + 1) % 3;
+            updateUI();
+            updateMessage(`${player.name} 出了 ${cards.map(c => c.suit.symbol + c.rank.name).join(' ')}`);
+            
+            // 如果是电脑回合，继续
+            if (!game.gameOver && !game.players[game.currentPlayerIdx].isHuman) {
+                setTimeout(computerPlay, 1000);
+            } else {
+                updateMessage('轮到你了！');
+            }
+        }
+        
+        // 检查出牌是否合法
+        function isValidPlay(cards, player) {
+            if (!cards || cards.length === 0) return false;
+            
+            // 第一手必须包含梅花3
+            if (game.firstTurn) {
+                const hasClubThree = cards.some(c => 
+                    c.suit === Suit.CLUB && c.rank === Rank.THREE);
+                if (!hasClubThree) return false;
+            }
+            
+            // 如果没有上一手牌，任何牌都可以出
+            if (game.lastPlay.length === 0) return true;
+            
+            // 检查牌型是否相同
+            const currentType = getHandType(cards);
+            const lastType = getHandType(game.lastPlay);
+            
+            if (currentType !== lastType) return false;
+            
+            // 检查大小
+            return compareHands(cards, game.lastPlay) > 0;
+        }
+        
+        // 获取牌型
+        function getHandType(cards) {
+            if (cards.length === 1) return 'single';
+            if (cards.length === 2) {
+                if (cards[0].rank === cards[1].rank) return 'pair';
+            }
+            if (cards.length === 3) {
+                if (cards[0].rank === cards[1].rank && cards[1].rank === cards[2].rank) return 'triple';
+            }
+            return 'invalid';
+        }
+        
+        // 比较两手牌
+        function compareHands(cards1, cards2) {
+            if (cards1.length !== cards2.length) return 0;
+            
+            if (cards1.length === 1) {
+                return compareCards(cards1[0], cards2[0]);
+            }
+            
+            if (cards1.length === 2) {
+                return cards1[0].rank.value - cards2[0].rank.value;
+            }
+            
+            return 0;
+        }
+        
+        // 比较两张牌
+        function compareCards(c1, c2) {
+            if (c1.rank.value !== c2.rank.value) {
+                return c1.rank.value - c2.rank.value;
+            }
+            return c1.suit.value - c2.suit.value;
+        }
+        
+        // 更新消息
+        function updateMessage(msg) {
+            document.getElementById('message').innerText = msg;
+        }
+        
+        // 检查游戏是否结束
+        function checkGameOver() {
+            for (let player of game.players) {
+                if (player.hand.length === 0) {
+                    game.gameOver = true;
+                    game.winner = player;
+                    showGameOver();
+                    break;
+                }
+            }
+        }
+        
+        // 显示游戏结束
+        function showGameOver() {
+            const gameOverDiv = document.getElementById('gameOverScreen');
+            gameOverDiv.style.display = 'block';
+            gameOverDiv.innerHTML = `
+                <div class="game-over">
+                    <div>🎉 游戏结束！ 🎉</div>
+                    <div style="font-size: 1.5em; margin: 20px 0;">${game.winner.name} 获胜！</div>
+                    <button class="new-game-btn" onclick="initGame()">新的一局</button>
+                </div>
+            `;
+            
+            document.getElementById('playerControls').style.display = 'none';
+        }
+        
+        // 启动游戏
+        window.onload = () => {
+            initGame();
+        };
+    </script>
+</body>
+</html>
