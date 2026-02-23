@@ -1,272 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>桥牌 · 四人合约</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-        }
-        body {
-            background: linear-gradient(145deg, #1a3f2c 0%, #2d5e44 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-            margin: 0;
-            padding: 16px;
-        }
-        .bridge-table {
-            background-color: #26734a;
-            background-image: radial-gradient(circle at 30% 40%, #3b8f5e 5%, transparent 15%),
-                              radial-gradient(circle at 80% 70%, #3b8f5e 8%, transparent 20%);
-            border-radius: 50% 50% 40% 40%;
-            box-shadow: 0 30px 30px rgba(0,0,0,0.6), inset 0 2px 8px #b8e0b0;
-            padding: 24px 20px 20px 20px;
-            width: 900px;
-            max-width: 100%;
-            border: 12px solid #5e3a1e;
-            border-top-color: #7b5a36;
-            border-bottom-color: #3f2a14;
-        }
-        .board {
-            background: #d9c8a9;
-            border-radius: 24px;
-            padding: 16px 12px;
-            box-shadow: inset 0 0 0 2px #b39264, inset 0 0 0 6px #6b4f2e, 0 10px 16px #1f2f1a;
-        }
-        .direction-row {
-            display: flex;
-            justify-content: center;
-            margin: 8px 0;
-        }
-        .player-area {
-            background: #f2e5d0;
-            border-radius: 30px 30px 12px 12px;
-            padding: 12px 8px;
-            min-width: 160px;
-            text-align: center;
-            box-shadow: 0 4px 0 #8b6f48;
-            border: 1px solid #baa077;
-        }
-        .player-label {
-            font-weight: bold;
-            background: #b99e73;
-            display: inline-block;
-            padding: 4px 18px;
-            border-radius: 40px;
-            color: white;
-            text-shadow: 1px 1px 0 #444;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            border: 1px solid #e5ca9e;
-        }
-        .hand-cards {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 4px 2px;
-            min-height: 66px;
-        }
-        .card {
-            background: white;
-            width: 46px;
-            height: 64px;
-            border-radius: 6px 6px 4px 4px;
-            box-shadow: -2px 2px 3px rgba(0,0,0,0.4), 0 0 0 1px #333;
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: space-between;
-            font-weight: 700;
-            font-size: 20px;
-            line-height: 1;
-            padding: 4px 2px;
-            transition: transform 0.1s ease;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-        }
-        .card.selectable:hover {
-            transform: translateY(-8px);
-            box-shadow: -4px 8px 8px black;
-        }
-        .card.selected {
-            transform: translateY(-10px);
-            box-shadow: 0 0 0 3px gold, -4px 8px 12px black;
-        }
-        .card.red {
-            color: #c02b2b;
-        }
-        .card.black {
-            color: #1f1f1f;
-        }
-        .card-trick {
-            background: #ebdbbd;
-            width: 52px;
-            height: 70px;
-            border-radius: 8px;
-            box-shadow: 0 0 0 1px #5a4a33, inset 0 0 0 1px #eee3ce;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-        .trick-pile {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin: 8px 0 16px 0;
-            background: #4d6b53;
-            border-radius: 80px;
-            padding: 12px 24px;
-            border: 3px solid #263f2b;
-        }
-        .compass {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .north-south {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin: 8px 0;
-        }
-        .center-trick {
-            background: #4e3e2b;
-            border-radius: 36px;
-            padding: 12px 0;
-            margin: 10px 0;
-            border: 3px solid #a5875b;
-        }
-        .button-panel {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-top: 18px;
-            flex-wrap: wrap;
-        }
-        button {
-            background: #e0cfa9;
-            border: 3px solid #947745;
-            color: #2d3e1f;
-            font-weight: bold;
-            font-size: 1.2rem;
-            padding: 10px 28px;
-            border-radius: 48px;
-            cursor: pointer;
-            box-shadow: 0 5px 0 #6b4f2e, 0 6px 12px black;
-            transition: 0.07s linear;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-        button:active {
-            transform: translateY(5px);
-            box-shadow: 0 1px 0 #5a3f20, 0 6px 12px black;
-        }
-        button:disabled {
-            opacity: 0.4;
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 #5a3f20;
-            pointer-events: none;
-        }
-        .bid-box {
-            background: #2b3b28;
-            color: #eee9d8;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-align: center;
-            border: 2px solid #cfb47c;
-            min-width: 160px;
-        }
-        .status {
-            background: #102015;
-            color: #d4cd9a;
-            padding: 8px 18px;
-            border-radius: 30px;
-            font-size: 1.2rem;
-        }
-        .vul-box {
-            background: #812b2b;
-            color: #ffd0a0;
-            padding: 2px 16px;
-            border-radius: 30px;
-            font-weight: bold;
-        }
-        .horizontal {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-    </style>
-</head>
-<body>
-<div class="bridge-table">
-    <div class="board">
-        <!-- 北家 -->
-        <div class="direction-row">
-            <div class="player-area">
-                <div class="player-label">北 North</div>
-                <div id="hand-north" class="hand-cards"></div>
-            </div>
-        </div>
+// 完整的修复版本 - 替换原有的整个<script>部分
 
-        <!-- 西 中墩 东 -->
-        <div class="north-south">
-            <div class="player-area" style="min-width:140px">
-                <div class="player-label">西 West</div>
-                <div id="hand-west" class="hand-cards"></div>
-            </div>
-            <div class="center-trick">
-                <div class="trick-pile">
-                    <div id="trick-north" class="card-trick">⬆️</div>
-                    <div id="trick-west" class="card-trick">⬅️</div>
-                    <div id="trick-south" class="card-trick">⬇️</div>
-                    <div id="trick-east" class="card-trick">➡️</div>
-                </div>
-                <div class="horizontal" style="justify-content:center; gap:30px; margin-top:8px;">
-                    <span class="status" id="turn-indicator">等待开始</span>
-                    <span class="vul-box" id="vul-display">局况：无</span>
-                </div>
-            </div>
-            <div class="player-area" style="min-width:140px">
-                <div class="player-label">东 East</div>
-                <div id="hand-east" class="hand-cards"></div>
-            </div>
-        </div>
-
-        <!-- 南家 -->
-        <div class="direction-row">
-            <div class="player-area">
-                <div class="player-label">南 South (你)</div>
-                <div id="hand-south" class="hand-cards"></div>
-            </div>
-        </div>
-
-        <!-- 叫牌与合约 -->
-        <div class="horizontal" style="justify-content:space-between; margin: 16px 0 4px;">
-            <div class="bid-box" id="contract-display">合约：无</div>
-            <div class="bid-box" id="bid-history">叫牌：--</div>
-        </div>
-
-        <!-- 按钮区域 -->
-        <div class="button-panel">
-            <button id="btn-new-hand">🃏 新牌局</button>
-            <button id="btn-pass">⛔ PASS</button>
-            <button id="btn-bid">🔊 叫品</button>
-            <button id="btn-play">🎯 出牌</button>
-            <button id="btn-reset">🔄 重置</button>
-        </div>
-    </div>
-</div>
 <script>
     (function() {
         // ---------- 桥牌核心定义 ----------
@@ -277,25 +10,24 @@
         const VUL = [ 'None', 'NS', 'EW', 'All' ];  // 局况索引
 
         // 当前游戏状态
-        let deck = [];                       // 全部牌 {suit, rank}
+        let deck = [];
         let hands = { North: [], East: [], South: [], West: [] };
         let currentTrick = { North: null, East: null, South: null, West: null };
         let tricksWon = { North: 0, East: 0, South: 0, West: 0 };
         let contract = { level: null, suit: null, declarer: null, doubled: false, redoubled: false };
-        let bidding = [];                    // 叫牌历史字符串
-        let currentPlayer = 'South';          // 起始南家(发牌人)
-        let phase = 'bidding';                // 'bidding' 或 'playing'
-        let vulIndex = 0;                     // 0=None
+        let bidding = [];
+        let currentPlayer = 'South';
+        let phase = 'bidding';
+        let vulIndex = 0;
         let handNumber = 0;
-        let selectedCard = null;              // 当前玩家选中的卡片DOM (仅南家)
-        let trickLeader = null;                // 当前这一墩的首攻人
+        let selectedCard = null;
+        let trickLeader = null;
+        let aiTimeout = null;  // 用于控制AI延迟
 
         // 叫牌等级常量
         const BID_LEVELS = ['1','2','3','4','5','6','7'];
         const BID_SUITS = ['♣','♦','♥','♠','NT'];
         const PASS = 'PASS';
-        const DOUBLE = 'X';
-        const REDOUBLE = 'XX';
 
         // ----- 工具函数 -----
         function cardString(c) {
@@ -306,13 +38,6 @@
             return RANKS.indexOf(rank);
         }
 
-        // 比较同一花色牌大小 (用于跟牌)
-        function compareCards(a, b, trumpSuit) {
-            if (a.suit === b.suit) return cardRankValue(a.rank) - cardRankValue(b.rank);
-            // 不是同一花色，用于决定赢墩: 先看将牌，再跟其他
-            return 0; // 不在这里处理，由赢墩逻辑决定
-        }
-
         // 新牌堆(洗牌)
         function createShuffledDeck() {
             let newDeck = [];
@@ -321,7 +46,6 @@
                     newDeck.push({ suit: s, rank: r });
                 }
             }
-            // Fisher–Yates
             for (let i = newDeck.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
@@ -345,23 +69,31 @@
             }
         }
 
-        // 重置全局 (重新发牌，清空叫牌、墩)
+        // 重置全局
         function newHand() {
+            // 清除之前的AI定时器
+            if (aiTimeout) {
+                clearTimeout(aiTimeout);
+                aiTimeout = null;
+            }
+            
             deal();
-            // 重置叫牌
             bidding = [];
             phase = 'bidding';
             contract = { level: null, suit: null, declarer: null, doubled: false, redoubled: false };
             currentTrick = { North: null, East: null, South: null, West: null };
             tricksWon = { North:0, East:0, South:0, West:0 };
-            // 发牌人轮换 (南家开始，每手轮换)
-            currentPlayer = DIRS[handNumber % 4];  // South, West, North, East 循环
-            // 局况 (简单按第几局, 桥牌标准：1无局，2南北，3东西，4双有，循环)
-            vulIndex = (handNumber % 4); // 0:None,1:NS,2:EW,3:All (手数0对应局况0)
+            currentPlayer = DIRS[handNumber % 4];
+            vulIndex = (handNumber % 4);
             handNumber++;
             selectedCard = null;
             trickLeader = null;
             renderAll();
+            
+            // 如果开局轮到电脑（不是南家），自动开始AI叫牌
+            if (phase === 'bidding' && currentPlayer !== 'South') {
+                aiBidding();
+            }
         }
 
         // 渲染全部UI
@@ -370,12 +102,31 @@
                 const container = document.getElementById(`hand-${d.toLowerCase()}`);
                 if (container) {
                     container.innerHTML = '';
-                    hands[d].forEach(card => {
-                        const cardEl = createCardElement(card, d);
-                        container.appendChild(cardEl);
-                    });
+                    // 只有南家显示手牌，其他玩家显示背面
+                    if (d === 'South') {
+                        hands[d].forEach(card => {
+                            const cardEl = createCardElement(card, d);
+                            container.appendChild(cardEl);
+                        });
+                    } else {
+                        // 其他玩家显示牌背
+                        for (let i = 0; i < hands[d].length; i++) {
+                            const cardBack = document.createElement('div');
+                            cardBack.className = 'card';
+                            cardBack.style.background = 'repeating-linear-gradient(45deg, #2a5f8a, #2a5f8a 10px, #1e4a6e 10px, #1e4a6e 20px)';
+                            cardBack.style.color = 'transparent';
+                            cardBack.style.border = '1px solid #aaa';
+                            cardBack.innerHTML = '?';
+                            cardBack.style.fontSize = '32px';
+                            cardBack.style.display = 'flex';
+                            cardBack.style.alignItems = 'center';
+                            cardBack.style.justifyContent = 'center';
+                            container.appendChild(cardBack);
+                        }
+                    }
                 }
             }
+            
             // 渲染当前墩
             for (let d of DIRS) {
                 const slot = document.getElementById(`trick-${d.toLowerCase()}`);
@@ -390,6 +141,7 @@
                     }
                 }
             }
+            
             // 显示局况
             document.getElementById('vul-display').innerText = `局况：${VUL[vulIndex]}`;
 
@@ -428,7 +180,6 @@
                 div.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (phase === 'playing' && currentPlayer === 'South') {
-                        // 切换选中
                         if (selectedCard === div) {
                             selectedCard.classList.remove('selected');
                             selectedCard = null;
@@ -437,77 +188,222 @@
                             selectedCard = div;
                             selectedCard.classList.add('selected');
                         }
-                    } else {
-                        // 叫牌阶段不能选牌
-                        if (selectedCard) {
-                            selectedCard.classList.remove('selected');
-                            selectedCard = null;
-                        }
                     }
                 });
             }
             return div;
         }
 
-        // 叫牌逻辑 (简易)
-        function placeBid() {
-            if (phase !== 'bidding') { alert('现在是打牌阶段'); return; }
-            // 模拟一个最简单的叫牌：永远叫 1NT (演示)
-            let bid = '1NT';
-            bidding.push(`${DIR_SHORT[currentPlayer]} ${bid}`);
-            // 简单设置北为庄家 (演示)
-            if (!contract.level) {
-                contract.level = '1';
-                contract.suit = 'NT';
-                contract.declarer = 'North';  // 固定北家做庄，简化
+        // AI叫牌逻辑
+        function aiBidding() {
+            if (phase !== 'bidding' || currentPlayer === 'South') return;
+            
+            // 清除之前的定时器
+            if (aiTimeout) {
+                clearTimeout(aiTimeout);
+                aiTimeout = null;
             }
-            // 叫牌结束直接进入打牌 (demo)
-            phase = 'playing';
-            // 首攻人是庄家的下家：东
-            currentPlayer = 'East';
-            trickLeader = 'East';
-            selectedCard = null;
-            renderAll();
-        }
-
-        function passBid() {
-            if (phase !== 'bidding') { alert('现在不是叫牌阶段'); return; }
-            bidding.push(`${DIR_SHORT[currentPlayer]} PASS`);
-            // 简单轮换
-            let idx = DIRS.indexOf(currentPlayer);
-            currentPlayer = DIRS[(idx + 1) % 4];
-            // 假如三家pass, 直接进入打牌? 演示直接定约1NT北
-            if (bidding.length >= 4) {
-                if (!contract.level) {
+            
+            aiTimeout = setTimeout(() => {
+                if (phase !== 'bidding' || currentPlayer === 'South') return;
+                
+                // 简单的AI叫牌：随机叫品或PASS
+                let bid;
+                if (Math.random() < 0.3) {
+                    // 30%概率叫牌
+                    let level = Math.floor(Math.random() * 7) + 1;
+                    let suit = BID_SUITS[Math.floor(Math.random() * 5)];
+                    bid = level + suit;
+                } else {
+                    bid = 'PASS';
+                }
+                
+                bidding.push(`${DIR_SHORT[currentPlayer]} ${bid}`);
+                
+                // 轮换到下家
+                let idx = DIRS.indexOf(currentPlayer);
+                currentPlayer = DIRS[(idx + 1) % 4];
+                
+                renderAll();
+                
+                // 简单的叫牌结束判断（演示用）
+                if (bidding.length >= 4) {
+                    // 设定一个默认合约
                     contract.level = '1';
                     contract.suit = 'NT';
                     contract.declarer = 'North';
+                    phase = 'playing';
+                    currentPlayer = 'East';  // 庄家的下家首攻
+                    trickLeader = 'East';
+                    renderAll();
+                    
+                    // 如果首攻是电脑，自动出牌
+                    if (currentPlayer !== 'South') {
+                        aiPlay();
+                    }
+                    return;
                 }
+                
+                // 继续下一个AI叫牌
+                if (currentPlayer !== 'South') {
+                    aiBidding();
+                }
+            }, 600); // 0.6秒思考时间
+        }
+
+        // 人类叫牌
+        function humanBid(bidType) {
+            if (phase !== 'bidding') { 
+                alert('现在不是叫牌阶段'); 
+                return; 
+            }
+            if (currentPlayer !== 'South') { 
+                alert(`现在轮到 ${currentPlayer}`); 
+                return; 
+            }
+            
+            // 清除AI定时器
+            if (aiTimeout) {
+                clearTimeout(aiTimeout);
+                aiTimeout = null;
+            }
+            
+            let bid;
+            if (bidType === 'pass') {
+                bid = 'PASS';
+            } else {
+                // 简单演示，固定叫1NT
+                bid = '1NT';
+            }
+            
+            bidding.push(`${DIR_SHORT[currentPlayer]} ${bid}`);
+            
+            // 轮换到下家
+            let idx = DIRS.indexOf(currentPlayer);
+            currentPlayer = DIRS[(idx + 1) % 4];
+            
+            renderAll();
+            
+            // 检查叫牌是否结束（演示用）
+            if (bidding.length >= 4) {
+                contract.level = '1';
+                contract.suit = 'NT';
+                contract.declarer = 'North';
                 phase = 'playing';
                 currentPlayer = 'East';
                 trickLeader = 'East';
+                renderAll();
+                
+                // 如果首攻是电脑，自动出牌
+                if (currentPlayer !== 'South') {
+                    aiPlay();
+                }
+                return;
             }
-            renderAll();
+            
+            // 如果下一家是电脑，启动AI叫牌
+            if (currentPlayer !== 'South') {
+                aiBidding();
+            }
         }
 
-        // 出牌 (南家)
-        function playCard() {
-            if (phase !== 'playing') { alert('还没开始打牌'); return; }
-            if (currentPlayer !== 'South') { alert('现在不是你的回合'); return; }
-            if (!selectedCard) { alert('请先点击一张手牌选中'); return; }
+        // AI出牌逻辑
+        function aiPlay() {
+            if (phase !== 'playing' || currentPlayer === 'South') return;
+            
+            // 清除之前的定时器
+            if (aiTimeout) {
+                clearTimeout(aiTimeout);
+                aiTimeout = null;
+            }
+            
+            aiTimeout = setTimeout(() => {
+                if (phase !== 'playing' || currentPlayer === 'South') return;
+                
+                let player = currentPlayer;
+                let hand = hands[player];
+                if (!hand.length) return;
+
+                let leadSuit = trickLeader ? currentTrick[trickLeader]?.suit : null;
+                let playCardObj = null;
+                
+                if (leadSuit) {
+                    // 有首攻花色，必须跟牌
+                    let sameSuitCards = hand.filter(c => c.suit === leadSuit);
+                    if (sameSuitCards.length > 0) {
+                        // 简单策略：如果有A就出A，否则出最小的
+                        let aceCard = sameSuitCards.find(c => c.rank === 'A');
+                        if (aceCard) {
+                            playCardObj = aceCard;
+                        } else {
+                            playCardObj = sameSuitCards.sort((a,b)=>cardRankValue(a.rank)-cardRankValue(b.rank))[0];
+                        }
+                    } else {
+                        // 没有相同花色，随便出一张
+                        playCardObj = hand[0];
+                    }
+                } else {
+                    // 领出：尽量出A或者最小的牌
+                    let aceCard = hand.find(c => c.rank === 'A');
+                    if (aceCard) {
+                        playCardObj = aceCard;
+                    } else {
+                        playCardObj = hand.sort((a,b)=>cardRankValue(a.rank)-cardRankValue(b.rank))[0];
+                    }
+                }
+
+                // 出牌
+                let idx = hand.findIndex(c => c.suit === playCardObj.suit && c.rank === playCardObj.rank);
+                if (idx !== -1) {
+                    hand.splice(idx, 1);
+                    currentTrick[player] = playCardObj;
+                }
+
+                // 检查这一墩是否完成
+                let allPlayed = DIRS.every(d => currentTrick[d] !== null);
+                if (allPlayed) {
+                    resolveTrick();
+                } else {
+                    // 轮到下一家
+                    let order = ['South', 'West', 'North', 'East'];
+                    let idxPlayer = order.indexOf(currentPlayer);
+                    currentPlayer = order[(idxPlayer + 1) % 4];
+                }
+                
+                renderAll();
+                
+                // 如果下一家还是电脑，继续自动出牌
+                if (phase === 'playing' && currentPlayer !== 'South') {
+                    aiPlay();
+                }
+            }, 800); // 0.8秒思考时间
+        }
+
+        // 人类出牌
+        function humanPlay() {
+            if (phase !== 'playing') { 
+                alert('还没开始打牌'); 
+                return; 
+            }
+            if (currentPlayer !== 'South') { 
+                alert(`现在轮到 ${currentPlayer}`); 
+                return; 
+            }
+            if (!selectedCard) { 
+                alert('请先点击一张手牌选中'); 
+                return; 
+            }
 
             let suit = selectedCard.dataset.suit;
             let rank = selectedCard.dataset.rank;
-            // 找到hands South中对应的牌对象
             let cardIndex = hands.South.findIndex(c => c.suit === suit && c.rank === rank);
             if (cardIndex === -1) return;
             let playedCard = hands.South[cardIndex];
 
-            // 简单跟牌检测 (首墩不需要)
+            // 跟牌检测
             if (trickLeader !== null) {
                 let leaderSuit = currentTrick[trickLeader]?.suit;
                 if (leaderSuit && playedCard.suit !== leaderSuit) {
-                    // 如果有相同花色的牌必须跟
                     let hasSameSuit = hands.South.some(c => c.suit === leaderSuit);
                     if (hasSameSuit) {
                         alert(`必须跟出 ${leaderSuit} 花色`);
@@ -519,27 +415,36 @@
             // 从手牌移除
             hands.South.splice(cardIndex, 1);
             currentTrick.South = playedCard;
-            if (selectedCard) selectedCard.classList.remove('selected');
-            selectedCard = null;
+            if (selectedCard) {
+                selectedCard.classList.remove('selected');
+                selectedCard = null;
+            }
 
-            // 判断这一墩是否完成 (四家出齐)
+            // 判断这一墩是否完成
             let allPlayed = DIRS.every(d => currentTrick[d] !== null);
             if (allPlayed) {
                 resolveTrick();
             } else {
-                // 轮到下家 (东? 按顺时针南->西->北->东)
+                // 轮到下家
                 let order = ['South', 'West', 'North', 'East'];
                 let idx = order.indexOf(currentPlayer);
                 currentPlayer = order[(idx + 1) % 4];
             }
+            
             renderAll();
+            
+            // 如果下一家是电脑，自动出牌
+            if (phase === 'playing' && currentPlayer !== 'South') {
+                aiPlay();
+            }
         }
 
         function resolveTrick() {
-            // 确定赢家 (简化: 同花色比大小, 将牌无, 按NT处理)
+            // 确定赢家
             let leadSuit = currentTrick[trickLeader].suit;
             let winner = trickLeader;
             let highestRank = cardRankValue(currentTrick[trickLeader].rank);
+            
             for (let d of DIRS) {
                 let c = currentTrick[d];
                 if (c.suit === leadSuit) {
@@ -550,6 +455,7 @@
                     }
                 }
             }
+            
             // 赢墩计数
             tricksWon[winner] = (tricksWon[winner] || 0) + 1;
 
@@ -559,108 +465,45 @@
             currentPlayer = winner;
             trickLeader = winner;
 
-            // 检查是否打完13墩(所有手牌为空)
+            // 检查是否打完13墩
             if (hands.South.length === 0) {
                 phase = 'gameOver';
                 alert(`牌局结束! 赢墩: N:${tricksWon.North} E:${tricksWon.East} S:${tricksWon.South} W:${tricksWon.West}`);
             }
         }
 
-        // 自动化其他三家出牌 (AI简易)
-        function aiPlay() {
-            if (phase !== 'playing') return;
-            if (currentPlayer === 'South') return; // 南家手动
-            let player = currentPlayer;
-            let hand = hands[player];
-            if (!hand.length) return;
-
-            let leadSuit = trickLeader ? currentTrick[trickLeader]?.suit : null;
-            let playCardObj = null;
-            if (leadSuit) {
-                // 有首攻花色，尽量跟牌
-                let sameSuitCards = hand.filter(c => c.suit === leadSuit);
-                if (sameSuitCards.length > 0) {
-                    // 随便出一张最小的(演示)
-                    playCardObj = sameSuitCards.sort((a,b)=>cardRankValue(a.rank)-cardRankValue(b.rank))[0];
-                } else {
-                    // 垫牌
-                    playCardObj = hand[0];
-                }
-            } else {
-                // 第一个出牌，随便出
-                playCardObj = hand[0];
-            }
-
-            // 移除并放入currentTrick
-            let idx = hand.findIndex(c => c.suit === playCardObj.suit && c.rank === playCardObj.rank);
-            if (idx !== -1) {
-                hand.splice(idx, 1);
-                currentTrick[player] = playCardObj;
-            }
-
-            // 检查满墩
-            let allPlayed = DIRS.every(d => currentTrick[d] !== null);
-            if (allPlayed) {
-                resolveTrick();
-            } else {
-                // 轮换
-                let order = ['South', 'West', 'North', 'East'];
-                let idxPlayer = order.indexOf(currentPlayer);
-                currentPlayer = order[(idxPlayer + 1) % 4];
-            }
-            renderAll();
-
-            // 如果下一家不是南家且游戏继续，继续AI (递归但用setTimeout避免阻塞)
-            if (phase === 'playing' && currentPlayer !== 'South') {
-                setTimeout(() => aiPlay(), 400);
-            }
-        }
-
-        // 监听ai动作 (每次渲染后若当前不是南家且playing,触发ai)
-        function triggerAI() {
-            if (phase === 'playing' && currentPlayer !== 'South' && DIRS.every(d => !currentTrick[d] || d===currentPlayer)) {
-                // 简单的延迟
-                setTimeout(() => aiPlay(), 300);
-            }
-        }
-
-        // 重置牌局（不换手）
+        // 重置牌局
         function resetGame() {
+            if (aiTimeout) {
+                clearTimeout(aiTimeout);
+                aiTimeout = null;
+            }
             handNumber = 0;
             newHand();
         }
 
         // 绑定按钮
         document.getElementById('btn-new-hand').addEventListener('click', () => {
-            newHand();
-            renderAll();
-            triggerAI();
+            resetGame();
         });
+        
         document.getElementById('btn-pass').addEventListener('click', () => {
-            passBid();
-            renderAll();
-            if (phase === 'playing') triggerAI();
+            humanBid('pass');
         });
+        
         document.getElementById('btn-bid').addEventListener('click', () => {
-            placeBid();
-            renderAll();
-            if (phase === 'playing') triggerAI();
+            humanBid('bid');
         });
+        
         document.getElementById('btn-play').addEventListener('click', () => {
-            playCard();
-            renderAll();
-            triggerAI();
+            humanPlay();
         });
+        
         document.getElementById('btn-reset').addEventListener('click', () => {
             resetGame();
-            renderAll();
-            triggerAI();
         });
 
         // 初始牌局
         newHand();
-        renderAll();
     })();
 </script>
-</body>
-</html>
