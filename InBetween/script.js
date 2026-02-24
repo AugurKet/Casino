@@ -1,39 +1,33 @@
-/* ===============================
-   IN-BETWEEN GAME – FINAL FIXED
-================================= */
+/* ======================================
+   IN-BETWEEN GAME – CLEAN FINAL ENGINE
+====================================== */
 
 let players = [];
-let currentPlayerIndex = 0;
 let pool = 0;
-let anteAmount = 0;
+let ante = 0;
 let deck = [];
+let currentPlayer = 0;
 let centerCard = null;
-let roundActive = false;
 
-/* ===============================
-   CARD / DECK
-================================= */
+/* ================= DECK ================= */
 
 function createDeck() {
-    const suits = ["♠", "♥", "♦", "♣"];
-    const values = [1,2,3,4,5,6,7,8,9,10,11,12,13];
-    let newDeck = [];
-
-    for (let suit of suits) {
-        for (let value of values) {
-            newDeck.push({ value, suit });
+    const suits = ["♠","♥","♦","♣"];
+    let d = [];
+    for (let s of suits) {
+        for (let v = 1; v <= 13; v++) {
+            d.push({value:v, suit:s});
         }
     }
-
-    return shuffle(newDeck);
+    return shuffle(d);
 }
 
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+function shuffle(arr) {
+    for (let i = arr.length-1; i>0; i--) {
+        const j = Math.floor(Math.random()*(i+1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    return array;
+    return arr;
 }
 
 function drawCard() {
@@ -41,247 +35,260 @@ function drawCard() {
     return deck.pop();
 }
 
-/* ===============================
-   START GAME
-================================= */
+/* ================= START GAME ================= */
 
 function startGame() {
+
     const numPlayers = parseInt(document.getElementById("numPlayers").value);
-    anteAmount = parseInt(document.getElementById("anteAmount").value);
+    ante = parseInt(document.getElementById("anteAmount").value);
 
     if (!numPlayers || numPlayers < 1 || numPlayers > 10) {
-        alert("1–10 players allowed.");
+        alert("Players must be 1–10");
+        return;
+    }
+
+    if (!ante || ante <= 0) {
+        alert("Invalid ante");
         return;
     }
 
     players = [];
     pool = 0;
     deck = createDeck();
+    currentPlayer = 0;
 
-    for (let i = 1; i <= numPlayers; i++) {
-        let bankroll = 100;
-        bankroll -= anteAmount;
-        pool += anteAmount;
+    for (let i=1; i<=numPlayers; i++) {
+        let bankroll = 100 - ante;
+        pool += ante;
 
         players.push({
-            name: `Player ${i}`,
+            name: "Player " + i,
             bankroll: bankroll,
-            netGain: -anteAmount,
-            card1: null,
-            card2: null,
-            currentBet: 0
+            net: -ante,
+            c1: null,
+            c2: null
         });
     }
 
     dealNewRound();
 }
 
-/* ===============================
-   DEAL ROUND
-================================= */
+/* ================= DEAL ROUND ================= */
 
 function dealNewRound() {
+
     deck = createDeck();
     centerCard = null;
-    currentPlayerIndex = 0;
-    roundActive = true;
+    currentPlayer = 0;
 
     players.forEach(p => {
-        p.card1 = drawCard();
-        p.card2 = drawCard();
-        p.currentBet = 0;
+        p.c1 = drawCard();
+        p.c2 = drawCard();
     });
 
-    renderPlayers();
-    enableActivePlayer();
+    render();
+    checkLowBankroll();
 }
 
-/* ===============================
-   BET LOGIC
-================================= */
+/* ================= PLAYER TURN ================= */
 
-function handleBet(index) {
-    if (index !== currentPlayerIndex) return;
+function handleBet(i) {
 
-    const betInput = document.getElementById(`bet-${index}`);
-    const betAmount = parseInt(betInput.value);
+    if (i !== currentPlayer) return;
 
-    if (!betAmount || betAmount <= 0) {
-        alert("Enter valid bet.");
+    let player = players[i];
+    let input = document.getElementById("bet-"+i);
+    let bet = parseInt(input.value);
+
+    if (!bet || bet <= 0) {
+        alert("Invalid bet");
         return;
     }
 
-    const player = players[index];
+    let maxBet = Math.floor(player.bankroll/2);
 
-    if (betAmount > player.bankroll) {
-        alert("Not enough bankroll.");
+    if (bet > maxBet) {
+        alert("Max bet is " + maxBet);
         return;
     }
 
-    // Deduct ONCE
-    player.bankroll -= betAmount;
-    player.currentBet = betAmount;
-    pool += betAmount;
+    player.bankroll -= bet;
+    pool += bet;
 
-    renderPlayers();
-    revealCenterCard(index);
+    animateCenterCard(() => {
+        resolveBet(player, bet);
+    });
 }
 
-function handleSkip(index) {
-    if (index !== currentPlayerIndex) return;
-
+function handleSkip(i) {
+    if (i !== currentPlayer) return;
     nextPlayer();
 }
 
-/* ===============================
-   3RD CARD ANIMATION
-================================= */
+/* ================= CENTER CARD ================= */
 
-function revealCenterCard(index) {
+function animateCenterCard(callback) {
+
     const display = document.getElementById("centerCard");
-    let animationTime = 1500;
-    let intervalSpeed = 80;
 
-    let animation = setInterval(() => {
-        let randomCard = drawCard();
-        display.innerText = formatCard(randomCard);
-    }, intervalSpeed);
+    let interval = setInterval(() => {
+        let temp = drawCard();
+        display.innerText = format(temp);
+    }, 80);
 
     setTimeout(() => {
-        clearInterval(animation);
+        clearInterval(interval);
         centerCard = drawCard();
-        display.innerText = formatCard(centerCard);
-        resolveBet(index);
-    }, animationTime);
+        display.innerText = format(centerCard);
+        callback();
+    }, 1500);
 }
 
-/* ===============================
-   RESOLVE BET
-================================= */
+/* ================= RESOLVE ================= */
 
-function resolveBet(index) {
-    const player = players[index];
+function resolveBet(player, bet) {
 
-    const min = Math.min(player.card1.value, player.card2.value);
-    const max = Math.max(player.card1.value, player.card2.value);
+    const low = Math.min(player.c1.value, player.c2.value);
+    const high = Math.max(player.c1.value, player.c2.value);
 
-    if (centerCard.value > min && centerCard.value < max) {
+    if (centerCard.value === player.c1.value ||
+        centerCard.value === player.c2.value) {
+
+        // DOUBLE LOSS
+        player.bankroll -= bet;
+        pool += bet;
+        player.net -= bet * 2;
+
+    } else if (centerCard.value > low &&
+               centerCard.value < high) {
+
         // WIN
-        const payout = player.currentBet * 2;
+        player.bankroll += bet;
+        pool -= bet;
+        player.net += bet;
 
-        if (payout >= pool) {
-            player.bankroll += pool;
-            player.netGain += pool - player.currentBet;
-            pool = 0;
-
-            renderPlayers();
-
-            setTimeout(() => {
-                if (confirm(`${player.name} won the entire pool! Continue with same players? (-${anteAmount} ante each)`)) {
-                    players.forEach(p => {
-                        p.bankroll -= anteAmount;
-                        p.netGain -= anteAmount;
-                        pool += anteAmount;
-                    });
-                    dealNewRound();
-                } else {
-                    location.reload();
-                }
-            }, 500);
-
+        if (pool === 0) {
+            render();
+            setTimeout(handleEntirePoolWin, 500);
             return;
         }
 
-        player.bankroll += payout;
-        pool -= payout;
-        player.netGain += player.currentBet;
-
     } else {
-        // LOSE (already deducted)
-        player.netGain -= player.currentBet;
+
+        // NORMAL LOSS
+        player.net -= bet;
     }
 
-    player.currentBet = 0;
-
-    checkBankrupt(index);
+    render();
     nextPlayer();
 }
 
-/* ===============================
-   BANKRUPT
-================================= */
+/* ================= ROUND FLOW ================= */
 
-function checkBankrupt(index) {
-    const player = players[index];
+function nextPlayer() {
 
-    if (player.bankroll <= 0) {
-        let choice = prompt(`${player.name} is bankrupt. Enter top-up amount or type Q to quit:`);
+    currentPlayer++;
+
+    if (currentPlayer >= players.length) {
+        dealNewRound();  // new cards, pool untouched
+        return;
+    }
+
+    render();
+    checkLowBankroll();
+}
+
+/* ================= ENTIRE POOL ================= */
+
+function handleEntirePoolWin() {
+
+    if (confirm("Pool empty. Continue same players?")) {
+
+        players.forEach(p => {
+            p.bankroll -= ante;
+            p.net -= ante;
+            pool += ante;
+        });
+
+        dealNewRound();
+
+    } else {
+        location.reload();
+    }
+}
+
+/* ================= BANKROLL CHECK ================= */
+
+function checkLowBankroll() {
+
+    let p = players[currentPlayer];
+
+    if (p.bankroll <= 1) {
+
+        let choice = prompt(
+            p.name + " bankroll too low. Enter top-up amount or Q to quit:"
+        );
 
         if (!choice) return;
 
         if (choice.toLowerCase() === "q") {
-            players.splice(index, 1);
+            players.splice(currentPlayer,1);
+
             if (players.length === 0) {
                 alert("All players quit.");
                 location.reload();
+                return;
             }
+
+            if (currentPlayer >= players.length)
+                currentPlayer = 0;
+
         } else {
-            let amount = parseInt(choice);
-            if (!isNaN(amount) && amount > 0) {
-                player.bankroll += amount;
+            let amt = parseInt(choice);
+            if (!isNaN(amt) && amt > 0) {
+                p.bankroll += amt;
             }
         }
     }
+
+    render();
 }
 
-/* ===============================
-   NEXT PLAYER / ROUND FLOW
-================================= */
+/* ================= UI ================= */
 
-function nextPlayer() {
-    if (players.length === 0) return;
+function render() {
 
-    if (currentPlayerIndex >= players.length - 1) {
-        // ROUND ENDS → new cards
-        dealNewRound();
-        return;
-    }
-
-    currentPlayerIndex++;
-    enableActivePlayer();
-}
-
-/* ===============================
-   UI
-================================= */
-
-function renderPlayers() {
     const container = document.getElementById("players");
     container.innerHTML = "";
 
-    players.forEach((p, i) => {
-        const netColor = p.netGain < 0 ? "red" : "#444";
+    players.forEach((p,i)=>{
+
+        let netColor = p.net < 0 ? "red" : "#333";
 
         container.innerHTML += `
-        <div class="player ${i === currentPlayerIndex ? "active" : ""}">
-            <h3>${p.name} (<span style="color:${netColor}">${p.netGain}</span>)</h3>
+        <div class="player ${i===currentPlayer?"active":""}">
+            <h3>${p.name} 
+            (<span style="color:${netColor}">${p.net}</span>)</h3>
             <p>Bankroll: ${p.bankroll}</p>
-            <p>${formatCard(p.card1)} | ${formatCard(p.card2)}</p>
-            <input id="bet-${i}" type="number" placeholder="Bet amount" ${i !== currentPlayerIndex ? "disabled" : ""}/>
-            <button onclick="handleBet(${i})" ${i !== currentPlayerIndex ? "disabled" : ""}>BET</button>
-            <button onclick="handleSkip(${i})" ${i !== currentPlayerIndex ? "disabled" : ""}>SKIP</button>
-        </div>
-        `;
+            <p>${format(p.c1)} | ${format(p.c2)}</p>
+
+            <input id="bet-${i}" type="number"
+            ${i!==currentPlayer?"disabled":""}
+            placeholder="Max ${Math.floor(p.bankroll/2)}">
+
+            <button ${i!==currentPlayer?"disabled":""}
+            onclick="handleBet(${i})">BET</button>
+
+            <button ${i!==currentPlayer?"disabled":""}
+            onclick="handleSkip(${i})">SKIP</button>
+        </div>`;
     });
 
     document.getElementById("poolAmount").innerText = pool;
 }
 
-function enableActivePlayer() {
-    renderPlayers();
-}
+/* ================= FORMAT ================= */
 
-function formatCard(card) {
-    if (!card) return "";
-    return `${card.value}${card.suit}`;
+function format(card) {
+    return card.value + card.suit;
 }
