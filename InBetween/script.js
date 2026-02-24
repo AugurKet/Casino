@@ -4,6 +4,7 @@ let pool = 0;
 let ante = 5;
 let currentPlayerIndex = 0;
 let gameActive = false;
+let roundActive = false;
 
 const suits = ["♠","♥","♦","♣"];
 const values = [
@@ -31,8 +32,6 @@ function setupGame(){
       name:name,
       bankroll:100,
       wins:0,
-      card1:null,
-      card2:null,
       active:true
     });
   }
@@ -43,6 +42,7 @@ function setupGame(){
 /* ================= ROUND ================= */
 
 function startRound(){
+  roundActive = true;
   pool = 0;
   deck = buildDeck();
   shuffle(deck);
@@ -63,82 +63,42 @@ function startRound(){
   });
 
   updatePool();
-  renderPlayers();
   currentPlayerIndex = getNextActivePlayer(-1);
   gameActive = true;
+  renderPlayers();
   highlightPlayer();
 }
 
-/* ================= BANKRUPT ================= */
+/* ================= TURN CONTROL ================= */
 
-function handleBankrupt(player){
-  let choice = prompt(
-    player.name + " is bankrupt.\nEnter amount to top up OR type Q to quit:"
-  );
+function nextTurn(){
 
-  if(!choice){
-    player.active = false;
+  // check if everyone played once
+  let next = getNextActivePlayer(currentPlayerIndex);
+
+  if(next <= currentPlayerIndex){
+    // round finished → start new round
+    startRound();
     return;
   }
 
-  if(choice.toLowerCase() === "q"){
-    player.active = false;
-  } else {
-    let amt = parseInt(choice);
-    if(amt > 0){
-      player.bankroll += amt;
-    } else {
-      player.active = false;
+  currentPlayerIndex = next;
+  renderPlayers();
+  highlightPlayer();
+}
+
+function getNextActivePlayer(current){
+  let next = current;
+  do{
+    next++;
+    if(next >= players.length){
+      next = 0;
     }
-  }
+  } while(!players[next].active);
+  return next;
 }
 
-/* ================= RENDER ================= */
-
-function renderPlayers(){
-  const container=document.getElementById("playersContainer");
-  container.innerHTML="";
-
-  players.forEach((p,i)=>{
-    if(!p.active) return;
-
-    const div=document.createElement("div");
-    div.className="player";
-    div.id="player-"+i;
-
-    let winClass = p.wins >=0 ? "positive" : "negative";
-    let disabled = (i !== currentPlayerIndex) ? "disabled" : "";
-
-    div.innerHTML=`
-      <h3>${p.name} 
-      (<span class="${winClass}">
-      ${p.wins>=0?"+":""}${p.wins}</span>)</h3>
-
-      <div class="emoji-bank">💰 ${p.bankroll}</div>
-      <div>Ante: ${ante}</div>
-
-      <div class="cards">
-        ${cardHTML(p.card1)}
-        ${cardHTML(p.card2)}
-      </div>
-
-      <div class="bet-area">
-        <input type="number" id="bet-${i}" 
-          placeholder="Bet" min="1" max="${Math.min(pool, p.bankroll)}"
-          ${disabled}>
-        <br>
-        <button class="action-btn bet-btn" 
-          onclick="placeBet(${i})" ${disabled}>BET</button>
-        <button class="action-btn skip-btn" 
-          onclick="skipTurn(${i})" ${disabled}>SKIP</button>
-      </div>
-    `;
-
-    container.appendChild(div);
-  });
-}
-
-/* ================= BET LOGIC ================= */
+/* ================= BET ================= */
 
 function placeBet(i){
   if(i!==currentPlayerIndex || !gameActive) return;
@@ -151,14 +111,12 @@ function placeBet(i){
     return;
   }
 
-  // deduct bet immediately
   player.bankroll -= bet;
 
   const third=document.getElementById("thirdCardTop");
 
   let interval=setInterval(()=>{
     let temp=deck[Math.floor(Math.random()*deck.length)];
-    third.className="card";
     third.innerHTML=temp.name+temp.suit;
   },100);
 
@@ -175,87 +133,116 @@ function placeBet(i){
     if(card.val>min && card.val<max){
 
       if(bet >= poolBefore){
-        // WIN ENTIRE POOL
         player.bankroll += poolBefore + bet;
         player.wins += poolBefore;
         pool = 0;
-        gameActive=false;
         updatePool();
 
         setTimeout(()=>{
-          let again=confirm(player.name+" won the entire pool! Continue?");
+          let again=confirm(player.name+" won entire pool! Continue?");
           if(again){
             startRound();
           }else{
             location.reload();
           }
-        },800);
+        },700);
+        return;
 
       } else {
-        // NORMAL WIN 1:1
         player.bankroll += bet*2;
         player.wins += bet;
         pool -= bet;
-        nextTurn();
       }
 
     }else if(card.val===min || card.val===max){
-      // HIT lose double
       player.bankroll -= bet;
       pool += bet*2;
       player.wins -= bet*2;
       checkImmediateBankrupt(player);
-      nextTurn();
 
     }else{
-      // NORMAL LOSE
       pool += bet;
       player.wins -= bet;
       checkImmediateBankrupt(player);
-      nextTurn();
     }
 
     updatePool();
-    renderPlayers();
-    highlightPlayer();
-
-    setTimeout(()=>{
-      third.className="card back";
-      third.innerHTML="";
-    },1200);
+    nextTurn();
 
   },1500);
 }
 
-/* ================= BANKRUPT CHECK ================= */
-
-function checkImmediateBankrupt(player){
-  if(player.bankroll <=0){
-    handleBankrupt(player);
-  }
-}
-
-/* ================= TURN ================= */
+/* ================= SKIP ================= */
 
 function skipTurn(i){
   if(i!==currentPlayerIndex || !gameActive) return;
   nextTurn();
 }
 
-function nextTurn(){
-  currentPlayerIndex = getNextActivePlayer(currentPlayerIndex);
-  highlightPlayer();
+/* ================= BANKRUPT ================= */
+
+function handleBankrupt(player){
+  let choice = prompt(
+    player.name + " is bankrupt.\nEnter amount to top up OR type Q to quit:"
+  );
+
+  if(!choice || choice.toLowerCase()==="q"){
+    player.active=false;
+  }else{
+    let amt=parseInt(choice);
+    if(amt>0) player.bankroll+=amt;
+    else player.active=false;
+  }
 }
 
-function getNextActivePlayer(current){
-  let next = current;
-  do{
-    next++;
-    if(next >= players.length){
-      next = 0;
-    }
-  } while(!players[next].active);
-  return next;
+function checkImmediateBankrupt(player){
+  if(player.bankroll<=0){
+    handleBankrupt(player);
+  }
+}
+
+/* ================= RENDER ================= */
+
+function renderPlayers(){
+  const container=document.getElementById("playersContainer");
+  container.innerHTML="";
+
+  players.forEach((p,i)=>{
+    if(!p.active) return;
+
+    let winClass = p.wins>=0?"positive":"negative";
+    let disabled = (i!==currentPlayerIndex)?"disabled":"";
+
+    const div=document.createElement("div");
+    div.className="player";
+    div.id="player-"+i;
+
+    div.innerHTML=`
+      <h3>${p.name} 
+      (<span class="${winClass}">
+      ${p.wins>=0?"+":""}${p.wins}</span>)</h3>
+
+      <div class="emoji-bank">💰 ${p.bankroll}</div>
+      <div>Ante: ${ante}</div>
+
+      <div class="cards">
+        ${cardHTML(p.card1)}
+        ${cardHTML(p.card2)}
+      </div>
+
+      <div class="bet-area">
+        <input type="number" id="bet-${i}" 
+          min="1" max="${Math.min(pool,p.bankroll)}" ${disabled}>
+        <br>
+        <button class="action-btn bet-btn" 
+          onclick="placeBet(${i})" ${disabled}>BET</button>
+        <button class="action-btn skip-btn" 
+          onclick="skipTurn(${i})" ${disabled}>SKIP</button>
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
 }
 
 function highlightPlayer(){
@@ -274,7 +261,7 @@ function buildDeck(){
   let d=[];
   suits.forEach(s=>{
     values.forEach(v=>{
-      d.push({suit:s, name:v.name, val:v.val});
+      d.push({suit:s,name:v.name,val:v.val});
     });
   });
   return d;
