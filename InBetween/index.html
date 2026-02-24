@@ -1,107 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>In-Between Card Game</title>
-
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #0f172a;
-    color: white;
-    text-align: center;
-}
-
-h1 {
-    margin-top: 20px;
-}
-
-.setup {
-    margin: 20px;
-}
-
-input {
-    padding: 6px;
-    margin: 5px;
-    width: 120px;
-    text-align: center;
-}
-
-button {
-    padding: 8px 16px;
-    margin: 5px;
-    cursor: pointer;
-    border-radius: 6px;
-    border: none;
-}
-
-#startBtn {
-    font-size: 18px;
-    padding: 12px 24px;
-    background: gold;
-    color: black;
-    font-weight: bold;
-}
-
-#centerCard {
-    font-size: 40px;
-    margin: 20px;
-    height: 60px;
-}
-
-#pool {
-    font-size: 20px;
-    margin: 10px;
-}
-
-#players {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.player {
-    border: 1px solid white;
-    border-radius: 10px;
-    padding: 10px;
-    margin: 10px;
-    width: 200px;
-    background: #1e293b;
-}
-
-.player.active {
-    border: 2px solid gold;
-    background: #334155;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>IN-BETWEEN - Macao Edition</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<h1>IN-BETWEEN</h1>
+    <h1>IN-BETWEEN</h1>
 
-<div class="setup">
-    <input id="numPlayers" type="number" placeholder="Players (1-10)">
-    <input id="anteAmount" type="number" placeholder="Ante">
-    <button id="startBtn">Start Game</button>
-</div>
+    <!-- GAME SETUP -->
+    <div style="margin-top:20px;">
+        <input type="number" id="numPlayers" value="5" min="1" max="8">
+        <input type="number" id="ante" value="5" min="1">
+        <button onclick="startGame()">Start Game</button>
+    </div>
 
-<div id="pool">
-    Pool: $<span id="poolAmount">0</span>
-</div>
+    <!-- POOL DISPLAY -->
+    <div id="pool">Pool: $0</div>
 
-<div id="centerCard"></div>
+    <!-- THIRD CARD DISPLAY -->
+    <div id="thirdCard"></div>
 
-<div id="players"></div>
+    <!-- PLAYERS AREA -->
+    <div id="players"></div>
 
-<script src="script.js"></script>
-
-<script>
-/* Ensure Start Button Works */
-document.getElementById("startBtn")
-    .addEventListener("click", startGame);
-</script>
+    <!-- SCRIPT LOAD AT BOTTOM (IMPORTANT) -->
+    <script src="script.js"></script>
 
 </body>
 </html>
