@@ -3,8 +3,8 @@ let deck = [];
 let pool = 0;
 let ante = 5;
 let currentPlayerIndex = 0;
+let playersPlayedThisCycle = 0;
 let gameActive = false;
-let roundActive = false;
 
 const suits = ["♠","♥","♦","♣"];
 const values = [
@@ -16,7 +16,7 @@ const values = [
 
 document.getElementById("startBtn").onclick = setupGame;
 
-/* ================= SETUP ================= */
+/* ================= GAME START ================= */
 
 function setupGame(){
   let num = parseInt(prompt("How many players? (2-10)"));
@@ -36,13 +36,12 @@ function setupGame(){
     });
   }
 
-  startRound();
+  collectAnteAndDeal();
 }
 
-/* ================= ROUND ================= */
+/* ================= INITIAL ANTE ================= */
 
-function startRound(){
-  roundActive = true;
+function collectAnteAndDeal(){
   pool = 0;
   deck = buildDeck();
   shuffle(deck);
@@ -62,9 +61,31 @@ function startRound(){
     }
   });
 
-  updatePool();
-  currentPlayerIndex = getNextActivePlayer(-1);
+  playersPlayedThisCycle = 0;
+  currentPlayerIndex = getFirstActivePlayer();
   gameActive = true;
+
+  updatePool();
+  renderPlayers();
+  highlightPlayer();
+}
+
+/* ================= NEW ROTATION (NO ANTE) ================= */
+
+function dealNewCardsOnly(){
+  deck = buildDeck();
+  shuffle(deck);
+
+  players.forEach(p=>{
+    if(p.active){
+      p.card1 = deck.pop();
+      p.card2 = deck.pop();
+    }
+  });
+
+  playersPlayedThisCycle = 0;
+  currentPlayerIndex = getFirstActivePlayer();
+
   renderPlayers();
   highlightPlayer();
 }
@@ -73,18 +94,24 @@ function startRound(){
 
 function nextTurn(){
 
-  // check if everyone played once
-  let next = getNextActivePlayer(currentPlayerIndex);
+  playersPlayedThisCycle++;
+  let activeCount = players.filter(p=>p.active).length;
 
-  if(next <= currentPlayerIndex){
-    // round finished → start new round
-    startRound();
+  if(playersPlayedThisCycle >= activeCount){
+    // Everyone finished → NEW ROTATION (NO ANTE)
+    setTimeout(()=>{
+      dealNewCardsOnly();
+    },500);
     return;
   }
 
-  currentPlayerIndex = next;
+  currentPlayerIndex = getNextActivePlayer(currentPlayerIndex);
   renderPlayers();
   highlightPlayer();
+}
+
+function getFirstActivePlayer(){
+  return players.findIndex(p=>p.active);
 }
 
 function getNextActivePlayer(current){
@@ -128,20 +155,20 @@ function placeBet(i){
 
     let min=Math.min(player.card1.val,player.card2.val);
     let max=Math.max(player.card1.val,player.card2.val);
-    let poolBefore = pool;
 
     if(card.val>min && card.val<max){
 
-      if(bet >= poolBefore){
-        player.bankroll += poolBefore + bet;
-        player.wins += poolBefore;
+      if(bet >= pool){
+        // WIN ENTIRE POOL
+        player.bankroll += pool + bet;
+        player.wins += pool;
         pool = 0;
         updatePool();
 
         setTimeout(()=>{
-          let again=confirm(player.name+" won entire pool! Continue?");
+          let again=confirm(player.name+" won entire pool! Continue with same players?");
           if(again){
-            startRound();
+            collectAnteAndDeal();  // NEW GAME CYCLE
           }else{
             location.reload();
           }
