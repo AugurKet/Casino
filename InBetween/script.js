@@ -1,307 +1,214 @@
-/* ======================================
-   IN-BETWEEN GAME – FINAL STABLE VERSION
-====================================== */
+/* =========================================
+   IN-BETWEEN – MACAO EDITION
+   Hunter Green + Neon Green theme ready
+   Max bet = min(floor(bankroll/2), pool)
+   Top up when bankroll <= 1
+========================================= */
 
 let players = [];
 let pool = 0;
-let ante = 0;
+let ante = 5;
+let currentPlayerIndex = 0;
 let deck = [];
-let currentPlayer = 0;
-let centerCard = null;
 
-/* ================= DECK ================= */
+const suits = ["♠", "♥", "♦", "♣"];
+const values = [
+  { name: "A", val: 1 },
+  { name: "2", val: 2 },
+  { name: "3", val: 3 },
+  { name: "4", val: 4 },
+  { name: "5", val: 5 },
+  { name: "6", val: 6 },
+  { name: "7", val: 7 },
+  { name: "8", val: 8 },
+  { name: "9", val: 9 },
+  { name: "10", val: 10 },
+  { name: "J", val: 11 },
+  { name: "Q", val: 12 },
+  { name: "K", val: 13 }
+];
+
+/* =========================
+   INITIALIZATION
+========================= */
 
 function createDeck() {
-    const suits = ["♠","♥","♦","♣"];
-    let d = [];
-    for (let s of suits) {
-        for (let v = 1; v <= 13; v++) {
-            d.push({value:v, suit:s});
-        }
+  deck = [];
+  for (let s of suits) {
+    for (let v of values) {
+      deck.push({ suit: s, name: v.name, val: v.val });
     }
-    return shuffle(d);
-}
-
-function shuffle(arr) {
-    for (let i = arr.length-1; i>0; i--) {
-        const j = Math.floor(Math.random()*(i+1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
+  }
+  deck.sort(() => Math.random() - 0.5);
 }
 
 function drawCard() {
-    if (deck.length === 0) deck = createDeck();
-    return deck.pop();
+  if (deck.length === 0) createDeck();
+  return deck.pop();
 }
 
-/* ================= START GAME ================= */
+/* =========================
+   CARD RENDERING
+========================= */
+
+function renderCard(card) {
+  const isRed = card.suit === "♥" || card.suit === "♦";
+
+  return `
+    <div class="playing-card ${isRed ? "red" : "black"}">
+      <div class="corner top">
+        ${card.name}${card.suit}
+      </div>
+      <div class="center">
+        ${card.suit}
+      </div>
+      <div class="corner bottom">
+        ${card.name}${card.suit}
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   START GAME
+========================= */
 
 function startGame() {
+  const numPlayers = parseInt(document.getElementById("numPlayers").value);
+  ante = parseInt(document.getElementById("ante").value);
 
-    const numPlayers = parseInt(document.getElementById("numPlayers").value);
-    ante = parseInt(document.getElementById("anteAmount").value);
+  players = [];
+  pool = 0;
 
-    if (!numPlayers || numPlayers < 1 || numPlayers > 10) {
-        alert("Players must be 1–10");
-        return;
-    }
+  createDeck();
 
-    if (!ante || ante <= 0) {
-        alert("Invalid ante");
-        return;
-    }
+  for (let i = 1; i <= numPlayers; i++) {
+    let name = prompt("Enter name for Player " + i);
+    if (!name) name = "Player " + i;
 
-    players = [];
-    pool = 0;
-    deck = createDeck();
-    currentPlayer = 0;
+    pool += ante;
 
-    for (let i=1; i<=numPlayers; i++) {
-
-        let name = prompt("Enter name for Player " + i);
-        if (!name || name.trim() === "") {
-            name = "Player " + i;
-        }
-
-        let bankroll = 100 - ante;
-        pool += ante;
-
-        players.push({
-            name: name,
-            bankroll: bankroll,
-            net: -ante,
-            c1: null,
-            c2: null
-        });
-    }
-
-    dealNewRound();
-}
-
-/* ================= DEAL ROUND ================= */
-
-function dealNewRound() {
-
-    deck = createDeck();
-    centerCard = "";
-    currentPlayer = 0;
-
-    players.forEach(p => {
-        p.c1 = drawCard();
-        p.c2 = drawCard();
+    players.push({
+      name,
+      bankroll: 100 - ante,
+      net: -ante,
+      c1: drawCard(),
+      c2: drawCard()
     });
+  }
 
-    render();
-    checkLowBankroll();
+  updatePool();
+  renderPlayers();
 }
 
-/* ================= PLAYER TURN ================= */
+/* =========================
+   RENDER PLAYERS
+========================= */
 
-function handleBet(i) {
+function renderPlayers() {
+  const container = document.getElementById("players");
+  container.innerHTML = "";
 
-    if (i !== currentPlayer) return;
+  players.forEach((p, index) => {
+    const maxBet = Math.min(Math.floor(p.bankroll / 2), pool);
 
-    let player = players[i];
-    let input = document.getElementById("bet-"+i);
-    let bet = parseInt(input.value);
+    const div = document.createElement("div");
+    div.className = "player-card";
+    if (index === currentPlayerIndex) div.classList.add("active");
 
-    if (!bet || bet <= 0) {
-        alert("Invalid bet");
-        return;
-    }
+    div.innerHTML = `
+      <h3>${p.name} 
+        <span class="${p.net >= 0 ? "plus" : "minus"}">
+          (${p.net >= 0 ? "+" : ""}${p.net})
+        </span>
+      </h3>
+      <div class="bankroll">Bankroll: ${p.bankroll}</div>
+      <div class="cards">
+        ${renderCard(p.c1)}
+        ${renderCard(p.c2)}
+      </div>
+      <input type="number" id="bet-${index}" 
+             placeholder="Max ${maxBet}" 
+             min="1" max="${maxBet}">
+      <div class="btn-row">
+        <button onclick="placeBet(${index})">BET</button>
+        <button onclick="skipTurn()">SKIP</button>
+      </div>
+    `;
 
-    let maxBet = Math.min(
-        Math.floor(player.bankroll / 2),
-        pool
-    );
+    container.appendChild(div);
+  });
+}
 
-    if (bet > maxBet) {
-        alert("Max bet is " + maxBet);
-        return;
-    }
+/* =========================
+   BET LOGIC
+========================= */
 
+function placeBet(index) {
+  const player = players[index];
+  const betInput = document.getElementById(`bet-${index}`);
+  let bet = parseInt(betInput.value);
+
+  const maxBet = Math.min(Math.floor(player.bankroll / 2), pool);
+
+  if (!bet || bet < 1 || bet > maxBet) {
+    alert("Invalid bet.");
+    return;
+  }
+
+  const thirdCard = drawCard();
+
+  showThirdCard(thirdCard);
+
+  const low = Math.min(player.c1.val, player.c2.val);
+  const high = Math.max(player.c1.val, player.c2.val);
+
+  if (thirdCard.val > low && thirdCard.val < high) {
+    player.bankroll += bet;
+    player.net += bet;
+    pool -= bet;
+  } else {
     player.bankroll -= bet;
+    player.net -= bet;
     pool += bet;
+  }
 
-    animateCenterCard(() => {
-        resolveBet(player, bet);
-    });
-}
-
-function handleSkip(i) {
-    if (i !== currentPlayer) return;
-    nextPlayer();
-}
-
-/* ================= CENTER CARD ================= */
-
-function animateCenterCard(callback) {
-
-    const display = document.getElementById("centerCard");
-
-    let interval = setInterval(() => {
-        let temp = drawCard();
-        display.innerText = format(temp);
-    }, 80);
-
-    setTimeout(() => {
-        clearInterval(interval);
-        centerCard = drawCard();
-        display.innerText = format(centerCard);
-        callback();
-    }, 1500);
-}
-
-/* ================= RESOLVE ================= */
-
-function resolveBet(player, bet) {
-
-    const low = Math.min(player.c1.value, player.c2.value);
-    const high = Math.max(player.c1.value, player.c2.value);
-
-    if (centerCard.value === player.c1.value ||
-        centerCard.value === player.c2.value) {
-
-        // DOUBLE LOSS
-        player.bankroll -= bet;
-        pool += bet;
-        player.net -= bet * 2;
-
-    } else if (centerCard.value > low &&
-               centerCard.value < high) {
-
-        // WIN
-        player.bankroll += bet;
-        pool -= bet;
-        player.net += bet;
-
-        if (pool === 0) {
-            render();
-            setTimeout(handleEntirePoolWin, 500);
-            return;
-        }
-
-    } else {
-
-        // NORMAL LOSS
-        player.net -= bet;
+  if (player.bankroll <= 1) {
+    const topUp = confirm(player.name + " has low funds. Top up 100?");
+    if (topUp) {
+      player.bankroll += 100;
     }
+  }
 
-    render();
-    nextPlayer();
+  updatePool();
+  nextTurn();
 }
 
-/* ================= ROUND FLOW ================= */
-
-function nextPlayer() {
-
-    currentPlayer++;
-
-    if (currentPlayer >= players.length) {
-        dealNewRound();
-        return;
-    }
-
-    render();
-    checkLowBankroll();
+function skipTurn() {
+  nextTurn();
 }
 
-/* ================= ENTIRE POOL ================= */
-
-function handleEntirePoolWin() {
-
-    if (confirm("Pool empty. Continue same players?")) {
-
-        players.forEach(p => {
-            p.bankroll -= ante;
-            p.net -= ante;
-            pool += ante;
-        });
-
-        dealNewRound();
-
-    } else {
-        location.reload();
-    }
+function nextTurn() {
+  currentPlayerIndex++;
+  if (currentPlayerIndex >= players.length) {
+    currentPlayerIndex = 0;
+  }
+  renderPlayers();
 }
 
-/* ================= BANKROLL CHECK ================= */
+/* =========================
+   THIRD CARD DISPLAY
+========================= */
 
-function checkLowBankroll() {
-
-    let p = players[currentPlayer];
-
-    if (p.bankroll <= 1) {
-
-        let choice = prompt(
-            p.name + " bankroll too low. Enter top-up amount or Q to quit:"
-        );
-
-        if (!choice) return;
-
-        if (choice.toLowerCase() === "q") {
-            players.splice(currentPlayer,1);
-
-            if (players.length === 0) {
-                alert("All players quit.");
-                location.reload();
-                return;
-            }
-
-            if (currentPlayer >= players.length)
-                currentPlayer = 0;
-
-        } else {
-            let amt = parseInt(choice);
-            if (!isNaN(amt) && amt > 0) {
-                p.bankroll += amt;
-            }
-        }
-    }
-
-    render();
+function showThirdCard(card) {
+  const area = document.getElementById("thirdCard");
+  area.innerHTML = renderCard(card);
 }
 
-/* ================= UI ================= */
+/* =========================
+   POOL UPDATE
+========================= */
 
-function render() {
-
-    const container = document.getElementById("players");
-    container.innerHTML = "";
-
-    players.forEach((p,i)=>{
-
-        let netColor = p.net < 0 ? "red" : "#333";
-        let maxBet = Math.min(
-            Math.floor(p.bankroll / 2),
-            pool
-        );
-
-        container.innerHTML += `
-        <div class="player ${i===currentPlayer?"active":""}">
-            <h3>${p.name} 
-            (<span style="color:${netColor}">${p.net}</span>)</h3>
-            <p>Bankroll: ${p.bankroll}</p>
-            <p>${format(p.c1)} | ${format(p.c2)}</p>
-
-            <input id="bet-${i}" type="number"
-            ${i!==currentPlayer?"disabled":""}
-            placeholder="Max ${maxBet}">
-
-            <button ${i!==currentPlayer?"disabled":""}
-            onclick="handleBet(${i})">BET</button>
-
-            <button ${i!==currentPlayer?"disabled":""}
-            onclick="handleSkip(${i})">SKIP</button>
-        </div>`;
-    });
-
-    document.getElementById("poolAmount").innerText = pool;
-}
-
-/* ================= FORMAT ================= */
-
-function format(card) {
-    return card.value + card.suit;
+function updatePool() {
+  document.getElementById("pool").innerText = "Pool: $" + pool;
 }
