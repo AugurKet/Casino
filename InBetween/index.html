@@ -1,32 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>IN-BETWEEN - Macao Edition</title>
+    <title>IN-BETWEEN</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <h1>IN-BETWEEN</h1>
+<h1>IN-BETWEEN</h1>
 
-    <!-- GAME SETUP -->
-    <div style="margin-top:20px;">
-        <input type="number" id="numPlayers" value="5" min="1" max="8">
-        <input type="number" id="ante" value="5" min="1">
-        <button onclick="startGame()">Start Game</button>
-    </div>
+<div class="setup-panel">
+    <label>Players</label>
+    <input type="number" id="numPlayers" value="3" min="2" max="8">
 
-    <!-- POOL DISPLAY -->
-    <div id="pool">Pool: $0</div>
+    <label>Ante</label>
+    <input type="number" id="ante" value="5" min="1">
 
-    <!-- THIRD CARD DISPLAY -->
-    <div id="thirdCard"></div>
+    <button onclick="startGame()">Start Game</button>
+</div>
 
-    <!-- PLAYERS AREA -->
-    <div id="players"></div>
+<div id="pool">Pool: $0</div>
 
-    <!-- SCRIPT LOAD AT BOTTOM (IMPORTANT) -->
-    <script src="script.js"></script>
+<div id="thirdCard"></div>
 
+<div id="players"></div>
+
+<script src="script.js"></script>
 </body>
 </html>
