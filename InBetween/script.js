@@ -151,7 +151,7 @@ function placeBet(i){
     return;
   }
 
-  // Deduct bet immediately
+  // deduct bet immediately
   player.bankroll -= bet;
 
   const third=document.getElementById("thirdCardTop");
@@ -170,34 +170,48 @@ function placeBet(i){
 
     let min=Math.min(player.card1.val,player.card2.val);
     let max=Math.max(player.card1.val,player.card2.val);
+    let poolBefore = pool;
 
     if(card.val>min && card.val<max){
-      // WIN ENTIRE POOL
-      player.bankroll+=pool;
-      player.wins+=pool;
-      pool=0;
-      gameActive=false;
-      updatePool();
 
-      setTimeout(()=>{
-        let again=confirm(player.name+" won entire pool! Continue with same players?");
-        if(again){
-          startRound();
-        }else{
-          location.reload();
-        }
-      },800);
+      if(bet >= poolBefore){
+        // WIN ENTIRE POOL
+        player.bankroll += poolBefore + bet;
+        player.wins += poolBefore;
+        pool = 0;
+        gameActive=false;
+        updatePool();
+
+        setTimeout(()=>{
+          let again=confirm(player.name+" won the entire pool! Continue?");
+          if(again){
+            startRound();
+          }else{
+            location.reload();
+          }
+        },800);
+
+      } else {
+        // NORMAL WIN 1:1
+        player.bankroll += bet*2;
+        player.wins += bet;
+        pool -= bet;
+        nextTurn();
+      }
 
     }else if(card.val===min || card.val===max){
-      // HIT -> lose double
-      player.bankroll -= bet;   // second deduction
+      // HIT lose double
+      player.bankroll -= bet;
       pool += bet*2;
       player.wins -= bet*2;
+      checkImmediateBankrupt(player);
       nextTurn();
+
     }else{
-      // LOSE normal
+      // NORMAL LOSE
       pool += bet;
       player.wins -= bet;
+      checkImmediateBankrupt(player);
       nextTurn();
     }
 
@@ -213,12 +227,20 @@ function placeBet(i){
   },1500);
 }
 
+/* ================= BANKRUPT CHECK ================= */
+
+function checkImmediateBankrupt(player){
+  if(player.bankroll <=0){
+    handleBankrupt(player);
+  }
+}
+
+/* ================= TURN ================= */
+
 function skipTurn(i){
   if(i!==currentPlayerIndex || !gameActive) return;
   nextTurn();
 }
-
-/* ================= TURN ================= */
 
 function nextTurn(){
   currentPlayerIndex = getNextActivePlayer(currentPlayerIndex);
