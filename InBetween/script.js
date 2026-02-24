@@ -1,8 +1,5 @@
 /* =========================================
-   IN-BETWEEN – MACAO EDITION
-   Hunter Green + Neon Green theme ready
-   Max bet = min(floor(bankroll/2), pool)
-   Top up when bankroll <= 1
+   IN-BETWEEN – MACAO FINAL
 ========================================= */
 
 let players = [];
@@ -28,10 +25,6 @@ const values = [
   { name: "K", val: 13 }
 ];
 
-/* =========================
-   INITIALIZATION
-========================= */
-
 function createDeck() {
   deck = [];
   for (let s of suits) {
@@ -47,31 +40,16 @@ function drawCard() {
   return deck.pop();
 }
 
-/* =========================
-   CARD RENDERING
-========================= */
-
 function renderCard(card) {
   const isRed = card.suit === "♥" || card.suit === "♦";
-
   return `
     <div class="playing-card ${isRed ? "red" : "black"}">
-      <div class="corner top">
-        ${card.name}${card.suit}
-      </div>
-      <div class="center">
-        ${card.suit}
-      </div>
-      <div class="corner bottom">
-        ${card.name}${card.suit}
-      </div>
+      <div class="corner top">${card.name}${card.suit}</div>
+      <div class="center">${card.suit}</div>
+      <div class="corner bottom">${card.name}${card.suit}</div>
     </div>
   `;
 }
-
-/* =========================
-   START GAME
-========================= */
 
 function startGame() {
   const numPlayers = parseInt(document.getElementById("numPlayers").value);
@@ -79,6 +57,7 @@ function startGame() {
 
   players = [];
   pool = 0;
+  currentPlayerIndex = 0;
 
   createDeck();
 
@@ -100,10 +79,6 @@ function startGame() {
   updatePool();
   renderPlayers();
 }
-
-/* =========================
-   RENDER PLAYERS
-========================= */
 
 function renderPlayers() {
   const container = document.getElementById("players");
@@ -130,7 +105,7 @@ function renderPlayers() {
       <input type="number" id="bet-${index}" 
              placeholder="Max ${maxBet}" 
              min="1" max="${maxBet}">
-      <div class="btn-row">
+      <div>
         <button onclick="placeBet(${index})">BET</button>
         <button onclick="skipTurn()">SKIP</button>
       </div>
@@ -139,10 +114,6 @@ function renderPlayers() {
     container.appendChild(div);
   });
 }
-
-/* =========================
-   BET LOGIC
-========================= */
 
 function placeBet(index) {
   const player = players[index];
@@ -157,7 +128,6 @@ function placeBet(index) {
   }
 
   const thirdCard = drawCard();
-
   showThirdCard(thirdCard);
 
   const low = Math.min(player.c1.val, player.c2.val);
@@ -166,7 +136,7 @@ function placeBet(index) {
   if (thirdCard.val > low && thirdCard.val < high) {
     player.bankroll += bet;
     player.net += bet;
-    pool -= bet;
+    pool -= bet;   // ✅ correct subtraction
   } else {
     player.bankroll -= bet;
     player.net -= bet;
@@ -174,8 +144,7 @@ function placeBet(index) {
   }
 
   if (player.bankroll <= 1) {
-    const topUp = confirm(player.name + " has low funds. Top up 100?");
-    if (topUp) {
+    if (confirm(player.name + " has low funds. Top up 100?")) {
       player.bankroll += 100;
     }
   }
@@ -196,18 +165,9 @@ function nextTurn() {
   renderPlayers();
 }
 
-/* =========================
-   THIRD CARD DISPLAY
-========================= */
-
 function showThirdCard(card) {
-  const area = document.getElementById("thirdCard");
-  area.innerHTML = renderCard(card);
+  document.getElementById("thirdCard").innerHTML = renderCard(card);
 }
-
-/* =========================
-   POOL UPDATE
-========================= */
 
 function updatePool() {
   document.getElementById("pool").innerText = "Pool: $" + pool;
