@@ -111,8 +111,42 @@ function bet(i){
         pool+=amt;
     }
 
+    updatePool();
+
+    /* ===============================
+       LOW BANKROLL CHECK (≤10)
+    ================================ */
+    if(p.bankroll <= 10){
+        setTimeout(()=>{
+            let choice = confirm(
+                p.name + " has low bankroll ($" + p.bankroll + ").\n\nOK = Top Up +100\nCancel = Quit Game"
+            );
+
+            if(choice){
+                p.bankroll += 100;
+                renderPlayers();
+            } else {
+                players.splice(i,1);
+
+                if(players.length <= 1){
+                    alert("Game Over!");
+                    return;
+                }
+
+                if(currentPlayer >= players.length){
+                    currentPlayer = 0;
+                }
+
+                renderPlayers();
+            }
+        },500);
+        return;
+    }
+
+    /* ===============================
+       POOL EMPTY CHECK
+    ================================ */
     if(pool<=0){
-        updatePool();
         setTimeout(()=>{
             if(confirm("Pool empty. Start new round with same players?")){
                 newRound();
@@ -121,7 +155,6 @@ function bet(i){
         return;
     }
 
-    updatePool();
     nextTurn();
 }
 
