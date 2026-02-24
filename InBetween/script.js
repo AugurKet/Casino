@@ -1,5 +1,5 @@
 /* ======================================
-   IN-BETWEEN GAME – CLEAN FINAL ENGINE
+   IN-BETWEEN GAME – FINAL STABLE VERSION
 ====================================== */
 
 let players = [];
@@ -58,11 +58,17 @@ function startGame() {
     currentPlayer = 0;
 
     for (let i=1; i<=numPlayers; i++) {
+
+        let name = prompt("Enter name for Player " + i);
+        if (!name || name.trim() === "") {
+            name = "Player " + i;
+        }
+
         let bankroll = 100 - ante;
         pool += ante;
 
         players.push({
-            name: "Player " + i,
+            name: name,
             bankroll: bankroll,
             net: -ante,
             c1: null,
@@ -78,7 +84,7 @@ function startGame() {
 function dealNewRound() {
 
     deck = createDeck();
-    centerCard = null;
+    centerCard = "";
     currentPlayer = 0;
 
     players.forEach(p => {
@@ -105,7 +111,10 @@ function handleBet(i) {
         return;
     }
 
-    let maxBet = Math.floor(player.bankroll/2);
+    let maxBet = Math.min(
+        Math.floor(player.bankroll / 2),
+        pool
+    );
 
     if (bet > maxBet) {
         alert("Max bet is " + maxBet);
@@ -190,7 +199,7 @@ function nextPlayer() {
     currentPlayer++;
 
     if (currentPlayer >= players.length) {
-        dealNewRound();  // new cards, pool untouched
+        dealNewRound();
         return;
     }
 
@@ -264,6 +273,10 @@ function render() {
     players.forEach((p,i)=>{
 
         let netColor = p.net < 0 ? "red" : "#333";
+        let maxBet = Math.min(
+            Math.floor(p.bankroll / 2),
+            pool
+        );
 
         container.innerHTML += `
         <div class="player ${i===currentPlayer?"active":""}">
@@ -274,7 +287,7 @@ function render() {
 
             <input id="bet-${i}" type="number"
             ${i!==currentPlayer?"disabled":""}
-            placeholder="Max ${Math.floor(p.bankroll/2)}">
+            placeholder="Max ${maxBet}">
 
             <button ${i!==currentPlayer?"disabled":""}
             onclick="handleBet(${i})">BET</button>
