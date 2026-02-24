@@ -36,6 +36,9 @@ function renderCard(c){
     </div>`;
 }
 
+/* =======================
+   START NEW GAME
+======================= */
 function startGame(){
     const n=parseInt(document.getElementById("numPlayers").value);
     ante=parseInt(document.getElementById("ante").value);
@@ -50,6 +53,7 @@ function startGame(){
         if(!name) name="Player "+i;
 
         pool+=ante;
+
         players.push({
             name,
             bankroll:100-ante,
@@ -63,6 +67,9 @@ function startGame(){
     renderPlayers();
 }
 
+/* =======================
+   RENDER
+======================= */
 function renderPlayers(){
     const area=document.getElementById("players");
     area.innerHTML="";
@@ -86,6 +93,9 @@ function renderPlayers(){
     });
 }
 
+/* =======================
+   BET
+======================= */
 function bet(i){
     if(i!==currentPlayer) return;
 
@@ -113,9 +123,7 @@ function bet(i){
 
     updatePool();
 
-    /* ===============================
-       LOW BANKROLL CHECK (≤10)
-    ================================ */
+    /* LOW BANKROLL CHECK */
     if(p.bankroll <= 10){
         setTimeout(()=>{
             let choice = confirm(
@@ -143,13 +151,11 @@ function bet(i){
         return;
     }
 
-    /* ===============================
-       POOL EMPTY CHECK
-    ================================ */
+    /* POOL EMPTY CHECK */
     if(pool<=0){
         setTimeout(()=>{
-            if(confirm("Pool empty. Start new round with same players?")){
-                newRound();
+            if(confirm("Pool empty. Restart with same players?")){
+                restartWithSamePlayers();
             }
         },500);
         return;
@@ -158,6 +164,9 @@ function bet(i){
     nextTurn();
 }
 
+/* =======================
+   NEXT TURN
+======================= */
 function nextTurn(){
     currentPlayer++;
     if(currentPlayer>=players.length){
@@ -167,6 +176,9 @@ function nextTurn(){
     renderPlayers();
 }
 
+/* =======================
+   NEW ROUND (normal round)
+======================= */
 function newRound(){
     createDeck();
     players.forEach(p=>{
@@ -177,11 +189,40 @@ function newRound(){
     renderPlayers();
 }
 
+/* =======================
+   RESTART WITH SAME PLAYERS
+======================= */
+function restartWithSamePlayers(){
+    pool = 0;
+    createDeck();
+
+    players.forEach(p=>{
+        if(p.bankroll >= ante){
+            p.bankroll -= ante;
+            p.net -= ante;
+            pool += ante;
+            p.c1 = draw();
+            p.c2 = draw();
+        }
+    });
+
+    currentPlayer = 0;
+
+    updatePool();
+    renderPlayers();
+}
+
+/* =======================
+   THIRD CARD
+======================= */
 function showThirdCard(card){
     const area=document.getElementById("thirdCard");
     area.innerHTML=`<div class="flip">${renderCard(card)}</div>`;
 }
 
+/* =======================
+   UPDATE POOL
+======================= */
 function updatePool(){
     document.getElementById("pool").innerText="Pool: $"+pool;
 }
