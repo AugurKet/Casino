@@ -1,0 +1,85 @@
+body {
+  margin:0;
+  font-family:Arial;
+  background: radial-gradient(circle at center, #14002b, #000);
+  color:#0ff;
+  text-align:center;
+}
+
+.neon {
+  text-shadow:0 0 10px #0ff,0 0 30px #0ff;
+}
+
+.bankroll {
+  font-size:20px;
+  color:#ff0;
+  text-shadow:0 0 10px #ff0;
+}
+
+.chip-row {
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  margin:15px 0;
+}
+
+.chip {
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  background:#111;
+  border:3px solid #f0f;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  cursor:pointer;
+  box-shadow:0 0 10px #f0f;
+  transition:0.2s;
+}
+
+.chip.selected {
+  box-shadow:0 0 20px #ff0;
+  border-color:#ff0;
+}
+
+button {
+  padding:8px 12px;
+  margin:5px;
+  background:#111;
+  color:#0ff;
+  border:1px solid #0ff;
+  border-radius:6px;
+  box-shadow:0 0 10px #0ff;
+  cursor:pointer;
+}
+
+.cards {
+  display:flex;
+  justify-content:center;
+  min-height:120px;
+}
+
+.card {
+  width:70px;
+  height:100px;
+  margin:5px;
+  border-radius:8px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:22px;
+  font-weight:bold;
+  background:#111;
+  border:2px solid #0ff;
+  box-shadow:0 0 15px #0ff;
+}
+
+.back {
+  background:linear-gradient(45deg,#222,#555);
+}
+
+.message {
+  margin-top:15px;
+  font-size:22px;
+  text-shadow:0 0 10px #0ff;
+}
