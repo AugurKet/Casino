@@ -2,6 +2,7 @@ let chips = 500;
 let bet = 0;
 let deck = [];
 let playerHands = [[]];
+let playerBets = [];
 let dealerHand = [];
 let currentHand = 0;
 let gameActive = false;
@@ -11,11 +12,10 @@ let musicStarted = false;
 
 const suits = ["♠","♥","♦","♣"];
 const values = [
-{name:"A",val:11},{name:"2",val:2},{name:"3",val:3},
-{name:"4",val:4},{name:"5",val:5},{name:"6",val:6},
-{name:"7",val:7},{name:"8",val:8},{name:"9",val:9},
-{name:"10",val:10},{name:"J",val:10},
-{name:"Q",val:10},{name:"K",val:10}
+  {name:"A",val:11},{name:"2",val:2},{name:"3",val:3},
+  {name:"4",val:4},{name:"5",val:5},{name:"6",val:6},
+  {name:"7",val:7},{name:"8",val:8},{name:"9",val:9},
+  {name:"10",val:10},{name:"J",val:10},{name:"Q",val:10},{name:"K",val:10}
 ];
 
 const bgMusic = document.getElementById("bgMusic");
@@ -110,10 +110,13 @@ function startGame(){
   if(bet===0) return alert("Place bet first");
   createDeck();
   playerHands=[[]];
+  playerBets=[bet];
   dealerHand=[];
   currentHand=0;
   holeHidden=true;
   gameActive=true;
+  insuranceBet = 0;
+  document.getElementById("message").innerText="";
 
   draw(playerHands[0]);
   draw(dealerHand);
@@ -131,7 +134,7 @@ function startGame(){
   if(score(playerHands[0])===21){
     holeHidden=false;
     render();
-    chips+=bet*2.5;
+    chips += bet * 2.5;
     blackjackSound.play();
     document.getElementById("message").innerText="BLACKJACK!";
     updateChips();
@@ -144,42 +147,44 @@ function startGame(){
 function hit(){
   draw(playerHands[currentHand]);
   render();
-  if(score(playerHands[currentHand])>21) nextHand();
+  if(score(playerHands[currentHand])>21){
+    document.getElementById("message").innerText="BUST!";
+    nextHand();
+  }
 }
 
 function stand(){ nextHand(); }
 
 function doubleDown(){
-  if(chips<bet) return;
-  chips-=bet;
-  bet*=2;
-  updateChips();
+  if(chips < playerBets[currentHand]) return;
+  chips -= playerBets[currentHand];
+  playerBets[currentHand] *= 2;
   draw(playerHands[currentHand]);
   nextHand();
 }
 
 function split(){
-  if(chips<bet) return;
-  chips-=bet;
-  updateChips();
-  const [c1,c2]=playerHands[0];
-  playerHands=[[c1],[c2]];
+  if(chips < playerBets[0]) return;
+  chips -= playerBets[0];
+  const [c1,c2] = playerHands[0];
+  playerHands = [[c1],[c2]];
+  playerBets = [bet, bet];
   draw(playerHands[0]);
   draw(playerHands[1]);
-  document.getElementById("splitBtn").disabled=true;
+  document.getElementById("splitBtn").disabled = true;
   render();
 }
 
 function insurance(){
-  if(chips<bet/2) return;
-  insuranceBet=bet/2;
-  chips-=insuranceBet;
+  if(chips < bet/2) return;
+  insuranceBet = bet/2;
+  chips -= insuranceBet;
   updateChips();
-  document.getElementById("insuranceBtn").disabled=true;
+  document.getElementById("insuranceBtn").disabled = true;
 }
 
 function nextHand(){
-  if(currentHand<playerHands.length-1){
+  if(currentHand < playerHands.length-1){
     currentHand++;
     render();
   } else {
@@ -191,7 +196,16 @@ function dealerTurn(){
   holeHidden=false;
   render();
   while(score(dealerHand)<17) draw(dealerHand);
+  settleInsurance();
   settle();
+}
+
+function settleInsurance(){
+  if(dealerHand[0].name === "A" && score(dealerHand) === 21 && insuranceBet > 0){
+    chips += insuranceBet * 3;
+    winSound.play();
+  }
+  insuranceBet = 0;
 }
 
 function settle(){
@@ -199,19 +213,19 @@ function settle(){
   toggleButtons(false);
   let dealerScore=score(dealerHand);
 
-  playerHands.forEach(hand=>{
+  playerHands.forEach((hand,i)=>{
     let s=score(hand);
+    let b = playerBets[i];
     if(s>21){
       loseSound.play();
     }
     else if(dealerScore>21 || s>dealerScore){
-      chips+=bet*2;
+      chips += b*2;
       winSound.play();
     }
     else if(s===dealerScore){
-      chips+=bet;
-    }
-    else{
+      chips += b;
+    } else {
       loseSound.play();
     }
   });
