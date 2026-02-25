@@ -6,16 +6,20 @@ body {
   text-align:center;
 }
 
+/* Title Glow */
 .neon {
   text-shadow:0 0 10px #0ff,0 0 30px #0ff;
 }
 
+/* Bankroll */
 .bankroll {
   font-size:20px;
   color:#ff0;
   text-shadow:0 0 10px #ff0;
+  margin-bottom:10px;
 }
 
+/* Chips */
 .chip-row {
   display:flex;
   justify-content:center;
@@ -35,6 +39,7 @@ body {
   cursor:pointer;
   box-shadow:0 0 10px #f0f;
   transition:0.2s;
+  font-weight:bold;
 }
 
 .chip.selected {
@@ -42,8 +47,9 @@ body {
   border-color:#ff0;
 }
 
+/* Buttons */
 button {
-  padding:8px 12px;
+  padding:8px 14px;
   margin:5px;
   background:#111;
   color:#0ff;
@@ -51,12 +57,39 @@ button {
   border-radius:6px;
   box-shadow:0 0 10px #0ff;
   cursor:pointer;
+  transition:0.2s;
 }
 
+button:hover {
+  box-shadow:0 0 20px #0ff;
+}
+
+button:disabled {
+  opacity:0.5;
+  cursor:not-allowed;
+}
+
+/* GAME AREA LAYOUT */
+.game-area {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:70px;
+  margin-top:30px;
+}
+
+/* Dealer & Player Sections */
+.dealer-section,
+.player-section {
+  text-align:center;
+}
+
+/* Cards */
 .cards {
   display:flex;
   justify-content:center;
   min-height:120px;
+  margin-top:10px;
 }
 
 .card {
@@ -78,34 +111,48 @@ button {
   background:linear-gradient(45deg,#222,#555);
 }
 
+/* Player Area (Split hands side by side) */
 .player-area {
   display:flex;
   justify-content:center;
   gap:40px;
+  margin-top:10px;
+  margin-bottom:20px;
 }
 
 .hand {
-  padding:10px;
+  padding:12px;
   border-radius:10px;
 }
 
 .hand.active {
-  box-shadow:0 0 20px #ff0;
+  box-shadow:0 0 25px #ff0;
   border:2px solid #ff0;
 }
 
+/* Hand Score */
 .hand-score {
-  margin-top:5px;
+  margin-top:6px;
   font-size:18px;
 }
 
+/* Hand Result */
 .hand-result {
-  margin-top:5px;
+  margin-top:6px;
   font-size:16px;
+  font-weight:bold;
 }
 
-.message {
-  margin-top:15px;
-  font-size:22px;
-  text-shadow:0 0 10px #0ff;
+/* CENTER RESULT MESSAGE */
+.center-message {
+  min-width:160px;
+  font-size:28px;
+  font-weight:bold;
+  color:#ff0;
+  text-shadow:0 0 15px #ff0, 0 0 40px #ff0;
+}
+
+/* Controls spacing */
+.controls {
+  margin-top:50px; /* More space from neon box */
 }
