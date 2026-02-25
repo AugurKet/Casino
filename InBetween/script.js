@@ -11,6 +11,39 @@ const values = [
 ["10",10],["J",11],["Q",12],["K",13]
 ];
 
+/* =========================
+   SOUND ENGINE (SAFE LAYER)
+========================= */
+
+const SFX = {
+    deal: document.getElementById("sfx-deal"),
+    flip: document.getElementById("sfx-flip"),
+    win: document.getElementById("sfx-win"),
+    lose: document.getElementById("sfx-lose"),
+    click: document.getElementById("sfx-click"),
+    alert: document.getElementById("sfx-alert")
+};
+
+function playSound(sound){
+    if(!sound) return;
+    sound.currentTime = 0;
+    sound.play().catch(()=>{});
+}
+
+// Unlock iOS audio on first interaction
+document.addEventListener("click", ()=>{
+    Object.values(SFX).forEach(a=>{
+        a.volume=0;
+        a.play().then(()=>{
+            a.pause();
+            a.currentTime=0;
+            a.volume=1;
+        }).catch(()=>{});
+    });
+},{once:true});
+
+/* ======================= */
+
 function createDeck(){
     deck=[];
     for(let s of suits){
@@ -36,10 +69,12 @@ function renderCard(c){
     </div>`;
 }
 
-/* =======================
-   START NEW GAME
-======================= */
+/* ======================= */
+
 function startGame(){
+
+    playSound(SFX.click);
+
     const n=parseInt(document.getElementById("numPlayers").value);
     ante=parseInt(document.getElementById("ante").value);
 
@@ -63,13 +98,14 @@ function startGame(){
         });
     }
 
+    playSound(SFX.deal);
+
     updatePool();
     renderPlayers();
 }
 
-/* =======================
-   RENDER
-======================= */
+/* ======================= */
+
 function renderPlayers(){
     const area=document.getElementById("players");
     area.innerHTML="";
@@ -93,10 +129,12 @@ function renderPlayers(){
     });
 }
 
-/* =======================
-   BET
-======================= */
+/* ======================= */
+
 function bet(i){
+
+    playSound(SFX.click);
+
     if(i!==currentPlayer) return;
 
     const p=players[i];
@@ -115,16 +153,20 @@ function bet(i){
         p.bankroll+=amt;
         p.net+=amt;
         pool-=amt;
+        playSound(SFX.win);
     }else{
         p.bankroll-=amt;
         p.net-=amt;
         pool+=amt;
+        playSound(SFX.lose);
     }
 
     updatePool();
 
-    /* LOW BANKROLL CHECK */
     if(p.bankroll <= 10){
+
+        playSound(SFX.alert);
+
         setTimeout(()=>{
             let choice = confirm(
                 p.name + " has low bankroll ($" + p.bankroll + ").\n\nOK = Top Up +100\nCancel = Quit Game"
@@ -151,7 +193,6 @@ function bet(i){
         return;
     }
 
-    /* POOL EMPTY CHECK */
     if(pool<=0){
         setTimeout(()=>{
             if(confirm("Pool empty. Restart with same players?")){
@@ -164,9 +205,8 @@ function bet(i){
     nextTurn();
 }
 
-/* =======================
-   NEXT TURN
-======================= */
+/* ======================= */
+
 function nextTurn(){
     currentPlayer++;
     if(currentPlayer>=players.length){
@@ -176,9 +216,8 @@ function nextTurn(){
     renderPlayers();
 }
 
-/* =======================
-   NEW ROUND (normal round)
-======================= */
+/* ======================= */
+
 function newRound(){
     createDeck();
     players.forEach(p=>{
@@ -186,13 +225,18 @@ function newRound(){
         p.c2=draw();
     });
     currentPlayer=0;
+
+    playSound(SFX.deal);
+
     renderPlayers();
 }
 
-/* =======================
-   RESTART WITH SAME PLAYERS
-======================= */
+/* ======================= */
+
 function restartWithSamePlayers(){
+
+    playSound(SFX.click);
+
     pool = 0;
     createDeck();
 
@@ -208,21 +252,24 @@ function restartWithSamePlayers(){
 
     currentPlayer = 0;
 
+    playSound(SFX.deal);
+
     updatePool();
     renderPlayers();
 }
 
-/* =======================
-   THIRD CARD
-======================= */
+/* ======================= */
+
 function showThirdCard(card){
+
+    playSound(SFX.flip);
+
     const area=document.getElementById("thirdCard");
     area.innerHTML=`<div class="flip">${renderCard(card)}</div>`;
 }
 
-/* =======================
-   UPDATE POOL
-======================= */
+/* ======================= */
+
 function updatePool(){
     document.getElementById("pool").innerText="Pool: $"+pool;
 }
