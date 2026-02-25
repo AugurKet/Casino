@@ -92,6 +92,7 @@ h1 {
 
 .top { top: 5px; left: 6px; }
 .bottom { bottom: 5px; right: 6px; transform: rotate(180deg); }
+
 .center {
     position: absolute;
     top: 50%; left: 50%;
@@ -114,4 +115,22 @@ h1 {
 @keyframes flipCard {
     0% { transform: rotateY(90deg); }
     100% { transform: rotateY(0deg); }
+}
+
+/* ==================================================
+   MOBILE + TABLET ONLY (≤1024px)
+   Desktop remains unchanged
+================================================== */
+
+@media (max-width: 1024px) {
+
+    .player-card input[type="number"] {
+        width: 170px;      /* wider for touch */
+        height: 55px;      /* taller tap target */
+        font-size: 22px;   /* bigger numbers */
+        padding: 8px;
+        text-align: center;
+        border-radius: 8px;
+    }
+
 }
