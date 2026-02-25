@@ -78,6 +78,32 @@ button {
   background:linear-gradient(45deg,#222,#555);
 }
 
+.player-area {
+  display:flex;
+  justify-content:center;
+  gap:40px;
+}
+
+.hand {
+  padding:10px;
+  border-radius:10px;
+}
+
+.hand.active {
+  box-shadow:0 0 20px #ff0;
+  border:2px solid #ff0;
+}
+
+.hand-score {
+  margin-top:5px;
+  font-size:18px;
+}
+
+.hand-result {
+  margin-top:5px;
+  font-size:16px;
+}
+
 .message {
   margin-top:15px;
   font-size:22px;
