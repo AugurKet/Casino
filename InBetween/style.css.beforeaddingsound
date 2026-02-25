@@ -1,0 +1,117 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: radial-gradient(circle at center, #0f5132 0%, #0b3d2e 60%, #06281f 100%);
+    color: white;
+    text-align: center;
+}
+
+/* Title */
+h1 {
+    padding: 20px 0 10px 0;
+}
+
+/* Setup */
+.setup-panel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.setup-panel input {
+    width: 60px;
+    padding: 5px;
+    text-align: center;
+}
+
+.setup-panel button {
+    padding: 6px 14px;
+    background: #00ff88;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Pool */
+#pool {
+    font-size: 22px;
+    color: #00ff88;
+    margin: 10px 0;
+}
+
+/* Players */
+#players {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+.player-card {
+    background: rgba(0,0,0,0.45);
+    padding: 15px;
+    border-radius: 12px;
+    width: 230px;
+    border: 2px solid rgba(255,255,255,0.2);
+    transition: 0.3s;
+}
+
+.player-card.active {
+    border: 2px solid #00ff88;
+    box-shadow: 0 0 20px #00ff88;
+}
+
+.cards {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.playing-card {
+    width: 70px;
+    height: 100px;
+    background: white;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    font-weight: bold;
+}
+
+.playing-card.red { color: red; }
+.playing-card.black { color: black; }
+
+.corner {
+    position: absolute;
+    font-size: 14px;
+}
+
+.top { top: 5px; left: 6px; }
+.bottom { bottom: 5px; right: 6px; transform: rotate(180deg); }
+.center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 26px;
+}
+
+/* 3rd Card Flip */
+#thirdCard {
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flip {
+    animation: flipCard 1s ease;
+}
+
+@keyframes flipCard {
+    0% { transform: rotateY(90deg); }
+    100% { transform: rotateY(0deg); }
+}
