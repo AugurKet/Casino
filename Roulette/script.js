@@ -21,16 +21,52 @@ let spinning = false;
 const balanceEl = document.getElementById("balance");
 const resultEl = document.getElementById("result");
 const ball = document.getElementById("ball");
+const numberInput = document.getElementById("numberInput");
+
+/* --------------------------
+   CHIP SELECTION
+--------------------------- */
 
 document.querySelectorAll(".chip").forEach(btn => {
-  btn.onclick = () => selectedChip = parseInt(btn.dataset.value);
+  btn.onclick = () => {
+    document.querySelectorAll(".chip")
+      .forEach(b => b.classList.remove("active"));
+
+    btn.classList.add("active");
+    selectedChip = parseInt(btn.dataset.value);
+  };
 });
+
+/* --------------------------
+   BET SELECTION
+--------------------------- */
 
 document.querySelectorAll(".bet").forEach(btn => {
-  btn.onclick = () => currentBet = btn.dataset.bet;
+  btn.onclick = () => {
+
+    document.querySelectorAll(".bet")
+      .forEach(b => b.classList.remove("active"));
+
+    btn.classList.add("active");
+    currentBet = btn.dataset.bet;
+
+    // Enable number input only if Single Number selected
+    if (currentBet === "number") {
+      numberInput.disabled = false;
+    } else {
+      numberInput.disabled = true;
+    }
+  };
 });
 
+numberInput.disabled = true;
+
+/* --------------------------
+   DRAW WHEEL
+--------------------------- */
+
 function drawWheel(rotation = 0) {
+
   const radius = canvas.width / 2;
   const arc = (2 * Math.PI) / numbers.length;
 
@@ -73,6 +109,10 @@ function drawWheel(rotation = 0) {
 
 drawWheel();
 
+/* --------------------------
+   SPIN LOGIC (SNAP CORRECT)
+--------------------------- */
+
 document.getElementById("spinBtn").onclick = () => {
 
   if (spinning || !currentBet) return;
@@ -90,45 +130,49 @@ document.getElementById("spinBtn").onclick = () => {
   const winningNumber = numbers[winningIndex];
 
   const arc = (2 * Math.PI) / numbers.length;
-
-  // 🎯 Pointer at TOP = -90 degrees offset
   const pointerOffset = Math.PI / 2;
 
-  // 🎯 Land in CENTER of pocket
-  const targetRotation =
-    (Math.PI * 12) +                 // extra spins
-    pointerOffset -                  // align with top pointer
-    (winningIndex * arc) -           // move to correct slice
-    (arc / 2);                       // center of slice
+  const finalRotation =
+    pointerOffset -
+    (winningIndex * arc) -
+    (arc / 2);
+
+  const totalRotation = finalRotation + (Math.PI * 12);
 
   const spinTime = 5000;
   let start = null;
 
   function animate(timestamp) {
+
     if (!start) start = timestamp;
 
     let progress = timestamp - start;
     let percent = Math.min(progress / spinTime, 1);
 
-    // smooth cubic ease-out
     let ease = 1 - Math.pow(1 - percent, 3);
+    let currentRotation = totalRotation * ease;
 
-    let rotation = targetRotation * ease;
-
-    drawWheel(rotation);
-
-    // Ball spins opposite direction
-    ball.style.transform = `rotate(${-rotation * 2}rad)`;
+    drawWheel(currentRotation);
+    ball.style.transform = `rotate(${-currentRotation * 2}rad)`;
 
     if (percent < 1) {
       requestAnimationFrame(animate);
     } else {
+
+      // Snap exactly
+      drawWheel(finalRotation);
+      ball.style.transform = `rotate(${-finalRotation * 2}rad)`;
+
       finish(winningNumber);
     }
   }
 
   requestAnimationFrame(animate);
 };
+
+/* --------------------------
+   RESULT LOGIC
+--------------------------- */
 
 function finish(number) {
 
@@ -142,7 +186,7 @@ function finish(number) {
   if (currentBet === "odd" && number % 2 === 1) win = true;
 
   if (currentBet === "number") {
-    const input = parseInt(document.getElementById("numberInput").value);
+    const input = parseInt(numberInput.value);
     if (input === number) {
       win = true;
       payout = selectedChip * 36;
