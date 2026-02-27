@@ -1,4 +1,5 @@
 body {
+  margin: 0;
   background: radial-gradient(circle, #0f3d2e, #061d16);
   color: white;
   font-family: Arial;
@@ -8,14 +9,45 @@ body {
 .main {
   display: flex;
   justify-content: center;
-  gap: 50px;
+  gap: 60px;
   margin-top: 30px;
 }
 
+.wheel-container {
+  position: relative;
+  width: 450px;
+  height: 450px;
+}
+
 canvas {
-  background: #222;
   border-radius: 50%;
   box-shadow: 0 0 40px rgba(0,0,0,0.8);
+}
+
+.pointer {
+  position: absolute;
+  left: 50%;
+  top: -10px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-bottom: 30px solid gold;
+  z-index: 10;
+}
+
+#ball {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform-origin: -180px;
+  transform: rotate(0deg);
+  z-index: 5;
 }
 
 .panel {
