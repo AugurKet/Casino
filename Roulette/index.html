@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Mini Casino Roulette</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -11,7 +11,11 @@
 
 <div class="main">
 
-  <canvas id="wheelCanvas" width="450" height="450"></canvas>
+  <div class="wheel-container">
+    <canvas id="wheelCanvas" width="450" height="450"></canvas>
+    <div class="pointer"></div>
+    <div id="ball"></div>
+  </div>
 
   <div class="panel">
     <h2>Balance: RM <span id="balance">1000</span></h2>
@@ -37,8 +41,8 @@
     <button id="spinBtn">SPIN</button>
 
     <h2 id="result"></h2>
-
   </div>
+
 </div>
 
 <script src="script.js"></script>
