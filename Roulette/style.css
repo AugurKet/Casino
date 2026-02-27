@@ -60,6 +60,11 @@ button {
   cursor: pointer;
   border-radius: 6px;
   border: none;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.85;
 }
 
 .chip {
@@ -67,9 +72,31 @@ button {
   font-weight: bold;
 }
 
+.chip.active {
+  background: #00ffcc;
+  box-shadow: 0 0 12px #00ffcc;
+  transform: scale(1.08);
+}
+
 .bet {
   background: crimson;
   color: white;
+}
+
+.bet.active {
+  background: #ffcc00;
+  color: black;
+  box-shadow: 0 0 12px gold;
+  transform: scale(1.08);
+}
+
+#numberInput {
+  width: 90px;
+  padding: 8px;
+  font-size: 18px;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: 2px solid #ccc;
 }
 
 #spinBtn {
