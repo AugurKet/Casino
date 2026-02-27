@@ -9,7 +9,8 @@ const numbers = [
 ];
 
 const redNumbers = [
-1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36
+  1,3,5,7,9,12,14,16,18,19,
+  21,23,25,27,30,32,34,36
 ];
 
 let balance = 1000;
@@ -21,11 +22,11 @@ const balanceEl = document.getElementById("balance");
 const resultEl = document.getElementById("result");
 const ball = document.getElementById("ball");
 
-document.querySelectorAll(".chip").forEach(btn=>{
+document.querySelectorAll(".chip").forEach(btn => {
   btn.onclick = () => selectedChip = parseInt(btn.dataset.value);
 });
 
-document.querySelectorAll(".bet").forEach(btn=>{
+document.querySelectorAll(".bet").forEach(btn => {
   btn.onclick = () => currentBet = btn.dataset.bet;
 });
 
@@ -48,10 +49,9 @@ function drawWheel(rotation = 0) {
     ctx.moveTo(0, 0);
     ctx.arc(0, 0, radius, i * arc, (i + 1) * arc);
 
-    ctx.fillStyle = numbers[i] === 0
-      ? "green"
-      : redNumbers.includes(numbers[i])
-      ? "red"
+    ctx.fillStyle =
+      numbers[i] === 0 ? "green"
+      : redNumbers.includes(numbers[i]) ? "red"
       : "black";
 
     ctx.fill();
@@ -75,9 +75,9 @@ drawWheel();
 
 document.getElementById("spinBtn").onclick = () => {
 
-  if(spinning || !currentBet) return;
+  if (spinning || !currentBet) return;
 
-  if(balance < selectedChip){
+  if (balance < selectedChip) {
     alert("Not enough balance!");
     return;
   }
@@ -86,27 +86,41 @@ document.getElementById("spinBtn").onclick = () => {
   balance -= selectedChip;
   balanceEl.innerText = balance;
 
-  const winningIndex = Math.floor(Math.random()*numbers.length);
+  const winningIndex = Math.floor(Math.random() * numbers.length);
   const winningNumber = numbers[winningIndex];
 
   const arc = (2 * Math.PI) / numbers.length;
-  const targetRotation = (Math.PI * 10) - (winningIndex * arc);
+
+  // 🎯 Pointer at TOP = -90 degrees offset
+  const pointerOffset = Math.PI / 2;
+
+  // 🎯 Land in CENTER of pocket
+  const targetRotation =
+    (Math.PI * 12) +                 // extra spins
+    pointerOffset -                  // align with top pointer
+    (winningIndex * arc) -           // move to correct slice
+    (arc / 2);                       // center of slice
 
   const spinTime = 5000;
   let start = null;
 
-  function animate(timestamp){
-    if(!start) start = timestamp;
+  function animate(timestamp) {
+    if (!start) start = timestamp;
+
     let progress = timestamp - start;
     let percent = Math.min(progress / spinTime, 1);
+
+    // smooth cubic ease-out
     let ease = 1 - Math.pow(1 - percent, 3);
+
     let rotation = targetRotation * ease;
 
     drawWheel(rotation);
 
-    ball.style.transform = `rotate(${-rotation * 3}rad)`;
+    // Ball spins opposite direction
+    ball.style.transform = `rotate(${-rotation * 2}rad)`;
 
-    if(percent < 1){
+    if (percent < 1) {
       requestAnimationFrame(animate);
     } else {
       finish(winningNumber);
@@ -116,30 +130,31 @@ document.getElementById("spinBtn").onclick = () => {
   requestAnimationFrame(animate);
 };
 
-function finish(number){
+function finish(number) {
+
   spinning = false;
   let win = false;
   let payout = 0;
 
-  if(currentBet==="red" && redNumbers.includes(number)) win=true;
-  if(currentBet==="black" && !redNumbers.includes(number) && number!==0) win=true;
-  if(currentBet==="even" && number%2===0 && number!==0) win=true;
-  if(currentBet==="odd" && number%2===1) win=true;
+  if (currentBet === "red" && redNumbers.includes(number)) win = true;
+  if (currentBet === "black" && !redNumbers.includes(number) && number !== 0) win = true;
+  if (currentBet === "even" && number % 2 === 0 && number !== 0) win = true;
+  if (currentBet === "odd" && number % 2 === 1) win = true;
 
-  if(currentBet==="number"){
+  if (currentBet === "number") {
     const input = parseInt(document.getElementById("numberInput").value);
-    if(input===number){
-      win=true;
-      payout = selectedChip*36;
+    if (input === number) {
+      win = true;
+      payout = selectedChip * 36;
     }
   }
 
-  if(win){
-    if(currentBet!=="number") payout = selectedChip*2;
+  if (win) {
+    if (currentBet !== "number") payout = selectedChip * 2;
     balance += payout;
-    resultEl.innerText = "🎉 WIN! Number: "+number;
+    resultEl.innerText = "🎉 WIN! Number: " + number;
   } else {
-    resultEl.innerText = "❌ Lose! Number: "+number;
+    resultEl.innerText = "❌ Lose! Number: " + number;
   }
 
   balanceEl.innerText = balance;
