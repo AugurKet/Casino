@@ -2,19 +2,45 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Mini Roulette</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Mini Casino Roulette</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="roulette-container">
-    <div class="wheel" id="wheel"></div>
-    <div class="ball" id="ball"></div>
+<h1>🎰 Mini Casino Roulette</h1>
+
+<div class="main">
+
+  <canvas id="wheelCanvas" width="450" height="450"></canvas>
+
+  <div class="panel">
+    <h2>Balance: RM <span id="balance">1000</span></h2>
+
+    <div class="chips">
+      <button class="chip" data-value="10">RM10</button>
+      <button class="chip" data-value="50">RM50</button>
+      <button class="chip" data-value="100">RM100</button>
+    </div>
+
+    <h3>Place Bet</h3>
+
+    <div class="bets">
+      <button class="bet" data-bet="red">Red (x2)</button>
+      <button class="bet" data-bet="black">Black (x2)</button>
+      <button class="bet" data-bet="even">Even (x2)</button>
+      <button class="bet" data-bet="odd">Odd (x2)</button>
+      <button class="bet" data-bet="number">Single Number (x36)</button>
+    </div>
+
+    <input type="number" id="numberInput" min="0" max="36" placeholder="0-36">
+
+    <button id="spinBtn">SPIN</button>
+
+    <h2 id="result"></h2>
+
   </div>
+</div>
 
-  <button id="spinBtn">SPIN</button>
-  <h2 id="result"></h2>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
