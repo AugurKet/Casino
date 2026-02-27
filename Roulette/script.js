@@ -15,11 +15,11 @@ const redNumbers = [
 let balance = 1000;
 let selectedChip = 10;
 let currentBet = null;
-let currentRotation = 0;
 let spinning = false;
 
 const balanceEl = document.getElementById("balance");
 const resultEl = document.getElementById("result");
+const ball = document.getElementById("ball");
 
 document.querySelectorAll(".chip").forEach(btn=>{
   btn.onclick = () => selectedChip = parseInt(btn.dataset.value);
@@ -29,29 +29,46 @@ document.querySelectorAll(".bet").forEach(btn=>{
   btn.onclick = () => currentBet = btn.dataset.bet;
 });
 
-function drawWheel(rotation=0){
-  const radius = canvas.width/2;
-  const arc = (2*Math.PI)/numbers.length;
+function drawWheel(rotation = 0) {
+  const radius = canvas.width / 2;
+  const arc = (2 * Math.PI) / numbers.length;
 
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
-  ctx.translate(radius,radius);
+  ctx.translate(radius, radius);
   ctx.rotate(rotation);
 
-  for(let i=0;i<numbers.length;i++){
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  ctx.font = "bold 14px Arial";
+
+  for (let i = 0; i < numbers.length; i++) {
+
     ctx.beginPath();
-    ctx.moveTo(0,0);
-    ctx.arc(0,0,radius,i*arc,(i+1)*arc);
-    ctx.fillStyle = numbers[i]===0 ? "green" :
-      redNumbers.includes(numbers[i]) ? "red" : "black";
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius, i * arc, (i + 1) * arc);
+
+    ctx.fillStyle = numbers[i] === 0
+      ? "green"
+      : redNumbers.includes(numbers[i])
+      ? "red"
+      : "black";
+
     ctx.fill();
-    ctx.fillStyle="white";
-    ctx.rotate(arc/2);
-    ctx.fillText(numbers[i], radius-30,0);
-    ctx.rotate(-arc/2);
+
+    ctx.save();
+    ctx.rotate(i * arc + arc / 2);
+    ctx.fillStyle = "white";
+    ctx.fillText(numbers[i], radius - 25, 0);
+    ctx.restore();
   }
 
   ctx.restore();
+
+  ctx.beginPath();
+  ctx.arc(radius, radius, 40, 0, Math.PI * 2);
+  ctx.fillStyle = "#333";
+  ctx.fill();
 }
 
 drawWheel();
@@ -72,19 +89,24 @@ document.getElementById("spinBtn").onclick = () => {
   const winningIndex = Math.floor(Math.random()*numbers.length);
   const winningNumber = numbers[winningIndex];
 
-  let spinTime = 5000;
+  const arc = (2 * Math.PI) / numbers.length;
+  const targetRotation = (Math.PI * 10) - (winningIndex * arc);
+
+  const spinTime = 5000;
   let start = null;
-  const totalRotation = (Math.PI*8) + (winningIndex * (2*Math.PI/numbers.length));
 
   function animate(timestamp){
     if(!start) start = timestamp;
     let progress = timestamp - start;
-    let ease = 1 - Math.pow(1-progress/spinTime,3);
-    let rotation = totalRotation * ease;
+    let percent = Math.min(progress / spinTime, 1);
+    let ease = 1 - Math.pow(1 - percent, 3);
+    let rotation = targetRotation * ease;
 
     drawWheel(rotation);
 
-    if(progress < spinTime){
+    ball.style.transform = `rotate(${-rotation * 3}rad)`;
+
+    if(percent < 1){
       requestAnimationFrame(animate);
     } else {
       finish(winningNumber);
