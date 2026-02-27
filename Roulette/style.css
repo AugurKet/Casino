@@ -1,44 +1,48 @@
 body {
-  background: #1a1a1a;
+  background: radial-gradient(circle, #0f3d2e, #061d16);
   color: white;
-  text-align: center;
   font-family: Arial;
+  text-align: center;
 }
 
-.roulette-container {
-  position: relative;
-  width: 400px;
-  height: 400px;
-  margin: 40px auto;
+.main {
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+  margin-top: 30px;
 }
 
-.wheel {
-  width: 100%;
-  height: 100%;
+canvas {
+  background: #222;
   border-radius: 50%;
-  border: 8px solid #8b5a2b;
-  background: conic-gradient(
-    green 0deg 9.73deg,
-    red 9.73deg 19.46deg,
-    black 19.46deg 29.19deg,
-    red 29.19deg 38.92deg
-  );
-  transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+  box-shadow: 0 0 40px rgba(0,0,0,0.8);
 }
 
-.ball {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 15px;
-  height: 15px;
-  background: white;
-  border-radius: 50%;
-  transform-origin: -150px;
+.panel {
+  text-align: left;
 }
 
 button {
-  padding: 10px 30px;
-  font-size: 18px;
+  padding: 8px 14px;
+  margin: 5px;
   cursor: pointer;
+  border-radius: 6px;
+  border: none;
+}
+
+.chip {
+  background: gold;
+  font-weight: bold;
+}
+
+.bet {
+  background: crimson;
+  color: white;
+}
+
+#spinBtn {
+  background: limegreen;
+  font-size: 18px;
+  width: 100%;
+  margin-top: 15px;
 }
