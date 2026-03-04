@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Texas Hold'em Skill Assessment</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+<h1>🃏 Texas Hold'em Skill Assessment</h1>
+
+<!-- START SCREEN -->
+<div id="start-screen" class="card">
+<p>100 Questions • 5 Skill Categories • 15s Per Question</p>
+<button class="main-btn" onclick="startQuiz()">Start Test</button>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div id="quiz-screen" class="hidden card">
+
+<div id="progress"></div>
+
+<h2 id="question"></h2>
+
+<div id="options"></div>
+
+<div id="timer"></div>
+
+<div id="explanation"></div>
+
+<button id="next-btn" class="hidden main-btn" onclick="nextQuestion()">
+Next Question
+</button>
+
+</div>
+
+<!-- RESULT SCREEN -->
+<div id="result-screen" class="hidden card">
+<h2>Results</h2>
+<div id="results"></div>
+<button class="main-btn" onclick="restart()">Restart</button>
+</div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
