@@ -18,9 +18,16 @@
         /* Casino Table Pattern */
         #table {
             background: radial-gradient(circle at 50% 30%, #0a5c27 0%, #032b10 100%);
-            border: 20px solid #4a3018; /* Wood rim */
-            border-radius: 40px;
+            border: 10px solid #4a3018; /* Wood rim */
+            border-radius: 20px;
             box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        @media (min-width: 768px) {
+            #table {
+                border-width: 20px;
+                border-radius: 40px;
+            }
         }
 
         .card {
@@ -42,12 +49,25 @@
             backface-visibility: hidden;
         }
         
+        .hand-container {
+            position: relative;
+            height: 120px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Responsive scaling for mobile devices */
         @media (max-width: 600px) {
             .card {
-                width: 60px;
-                height: 84px;
-                font-size: 18px;
+                width: 55px;
+                height: 77px;
+                font-size: 16px;
                 padding: 2px 4px;
+                border-radius: 4px;
+            }
+            .hand-container {
+                height: 85px;
             }
         }
 
@@ -80,6 +100,15 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 0 0 4px rgba(255,255,255,0.2), inset 0 0 0 8px dashed rgba(0,0,0,0.3);
             transition: transform 0.1s;
             text-shadow: 1px 1px 2px black;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 600px) {
+            .chip {
+                width: 45px;
+                height: 45px;
+                font-size: 14px;
+            }
         }
 
         .chip:active { transform: scale(0.9); }
@@ -103,18 +132,18 @@
             cursor: pointer;
             transition: all 0.1s;
             font-family: 'Arial', sans-serif;
+            white-space: nowrap;
         }
         
+        @media (max-width: 600px) {
+            .btn {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+        }
+
         .btn:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.4); }
         .btn:disabled { background: #555; border-color: #333; color: #888; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        .hand-container {
-            position: relative;
-            height: 120px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
 
         .active-hand-indicator {
             position: absolute;
@@ -141,35 +170,53 @@
             transform: translate(-50%, -50%);
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid #d4af37;
-            padding: 20px 40px;
+            padding: 15px 30px;
             border-radius: 10px;
             color: #d4af37;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
             text-align: center;
             z-index: 50;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s;
+            width: max-content;
+            max-width: 90vw;
+        }
+        
+        @media (min-width: 768px) {
+            .message-overlay {
+                padding: 20px 40px;
+                font-size: 28px;
+            }
         }
 
         .gold-text {
             color: #d4af37;
             text-shadow: 1px 1px 3px black;
         }
+
+        /* Flexible play area fixes */
+        .play-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            min-height: 250px; /* Ensure cards always have some room to breathe */
+        }
     </style>
 </head>
-<body class="w-screen h-screen flex flex-col items-center justify-center p-2 lg:p-8">
+<body class="w-screen h-screen flex flex-col items-center justify-center p-1 md:p-4 lg:p-8">
 
     <!-- Main Game Table -->
-    <div id="table" class="relative w-full max-w-4xl h-full max-h-[800px] flex flex-col justify-between p-4 lg:p-8 overflow-hidden">
+    <div id="table" class="relative w-full h-full max-w-5xl max-h-[900px] flex flex-col p-2 md:p-6 lg:p-8 overflow-y-auto overflow-x-hidden">
         
         <!-- Top Info Bar -->
-        <div class="flex justify-between items-start z-10 font-bold font-sans text-lg lg:text-xl">
-            <div class="bg-black/50 px-4 py-2 rounded border border-yellow-600 gold-text">
+        <div class="flex justify-between items-start z-10 font-bold font-sans text-sm md:text-lg lg:text-xl shrink-0">
+            <div class="bg-black/50 px-3 py-1 md:px-4 md:py-2 rounded border border-yellow-600 gold-text">
                 BANKROLL: $<span id="ui-bankroll">500</span>
             </div>
-            <div class="bg-black/50 px-4 py-2 rounded border border-yellow-600 gold-text">
+            <div class="bg-black/50 px-3 py-1 md:px-4 md:py-2 rounded border border-yellow-600 gold-text">
                 BET: $<span id="ui-bet">0</span>
             </div>
         </div>
@@ -179,38 +226,38 @@
 
         <!-- Center Table Text (Moved strictly to background to allow flexible play area) -->
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 z-0">
-            <div class="text-center gold-text border-2 border-yellow-600 rounded-full py-8 px-16">
-                <h1 class="text-4xl lg:text-6xl font-black uppercase tracking-widest mb-2">Blackjack</h1>
-                <p class="text-xl lg:text-2xl uppercase tracking-widest">Pays 3 to 2</p>
-                <p class="text-sm mt-4">Dealer must draw to 16, and stand on all 17s</p>
-                <p class="text-sm">Insurance pays 2 to 1</p>
+            <div class="text-center gold-text border-2 border-yellow-600 rounded-full py-4 px-8 md:py-8 md:px-16 w-3/4 max-w-md md:max-w-xl">
+                <h1 class="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-widest mb-1 md:mb-2">Blackjack</h1>
+                <p class="text-lg md:text-xl lg:text-2xl uppercase tracking-widest">Pays 3 to 2</p>
+                <p class="text-xs md:text-sm mt-2 md:mt-4">Dealer must draw to 16, and stand on all 17s</p>
+                <p class="text-xs md:text-sm">Insurance pays 2 to 1</p>
             </div>
         </div>
 
-        <!-- Flexible Playing Area (Maximizes gap between Dealer and Player) -->
-        <div class="flex-1 flex flex-col justify-between w-full z-10 my-6">
+        <!-- Flexible Playing Area -->
+        <div class="play-area w-full z-10 my-2 md:my-4">
             
             <!-- Dealer Area -->
             <div class="flex flex-col items-center w-full">
-                <h2 class="gold-text text-xl mb-2 font-sans opacity-70">DEALER <span id="dealer-score" class="ml-2 text-white"></span></h2>
+                <h2 class="gold-text text-lg md:text-xl mb-1 md:mb-2 font-sans opacity-70">DEALER <span id="dealer-score" class="ml-2 text-white"></span></h2>
                 <div id="dealer-hand" class="hand-container"></div>
             </div>
 
             <!-- Player Area -->
-            <div class="flex flex-col items-center w-full mt-4">
-                <div id="player-hands-container" class="flex justify-center items-end gap-16 w-full">
+            <div class="flex flex-col items-center w-full mt-2">
+                <div id="player-hands-container" class="flex justify-center items-end gap-4 md:gap-16 w-full flex-wrap">
                     <!-- Hands injected via JS -->
                 </div>
-                <h2 class="gold-text text-xl mt-6 font-sans opacity-70">PLAYER</h2>
+                <h2 class="gold-text text-lg md:text-xl mt-4 md:mt-6 font-sans opacity-70">PLAYER</h2>
             </div>
             
         </div>
 
         <!-- Control Area (Bottom) -->
-        <div class="bg-black/80 rounded-2xl p-4 flex flex-col border border-yellow-900/50 z-20">
+        <div class="bg-black/80 rounded-xl md:rounded-2xl p-3 md:p-4 flex flex-col border border-yellow-900/50 z-20 shrink-0">
             
             <!-- Actions -->
-            <div id="action-controls" class="flex flex-wrap justify-center gap-2 lg:gap-4 mb-4 hidden">
+            <div id="action-controls" class="flex flex-wrap justify-center gap-2 md:gap-4 mb-2 md:mb-4 hidden">
                 <button id="btn-hit" class="btn">Hit</button>
                 <button id="btn-stand" class="btn">Stand</button>
                 <button id="btn-double" class="btn">Double</button>
@@ -218,9 +265,9 @@
             </div>
 
             <!-- Insurance Actions -->
-            <div id="insurance-controls" class="flex justify-center gap-4 mb-4 hidden">
+            <div id="insurance-controls" class="flex justify-center gap-4 mb-2 md:mb-4 hidden">
                 <div class="flex flex-col items-center justify-center w-full">
-                    <p class="text-white mb-2 font-sans font-bold">Insurance?</p>
+                    <p class="text-white mb-2 font-sans font-bold text-sm md:text-base">Insurance?</p>
                     <div class="flex gap-4">
                         <button id="btn-ins-yes" class="btn bg-green-600 text-white">Yes</button>
                         <button id="btn-ins-no" class="btn bg-red-600 text-white">No</button>
@@ -229,16 +276,18 @@
             </div>
 
             <!-- Betting Controls -->
-            <div id="bet-controls" class="flex flex-wrap justify-center items-center gap-4">
-                <button class="chip chip-1" data-val="1">1</button>
-                <button class="chip chip-5" data-val="5">5</button>
-                <button class="chip chip-10" data-val="10">10</button>
-                <button class="chip chip-50" data-val="50">50</button>
-                <button class="chip chip-100" data-val="100">100</button>
+            <div id="bet-controls" class="flex flex-col items-center w-full">
+                <div class="flex flex-wrap justify-center items-center gap-2 md:gap-4 mb-3">
+                    <button class="chip chip-1" data-val="1">1</button>
+                    <button class="chip chip-5" data-val="5">5</button>
+                    <button class="chip chip-10" data-val="10">10</button>
+                    <button class="chip chip-50" data-val="50">50</button>
+                    <button class="chip chip-100" data-val="100">100</button>
+                </div>
                 
-                <div class="w-full flex justify-center gap-4 mt-2">
-                    <button id="btn-clear" class="btn bg-gray-600 !text-white !border-gray-800 text-sm">Clear</button>
-                    <button id="btn-deal" class="btn text-sm px-8" disabled>DEAL</button>
+                <div class="flex justify-center gap-2 md:gap-4 w-full">
+                    <button id="btn-clear" class="btn bg-gray-600 !text-white !border-gray-800 text-xs md:text-sm">Clear</button>
+                    <button id="btn-deal" class="btn text-xs md:text-sm px-6 md:px-8" disabled>DEAL</button>
                 </div>
             </div>
 
@@ -454,6 +503,12 @@ function updateUI() {
 
 function renderCards(container, cards, hideSecond = false) {
     container.innerHTML = '';
+    
+    // Check if mobile to adjust dynamic overlap width calculation
+    const isMobile = window.innerWidth <= 600;
+    const xOffset = isMobile ? 20 : 30;
+    const cardBaseWidth = isMobile ? 55 : 80;
+
     cards.forEach((card, i) => {
         const el = document.createElement('div');
         if (hideSecond && i === 1) {
@@ -463,15 +518,15 @@ function renderCards(container, cards, hideSecond = false) {
             el.className = `card ${isRed ? 'red' : 'black'}`;
             el.innerHTML = `
                 <div class="self-start">${card.val}${card.suit}</div>
-                <div class="self-center text-4xl opacity-50 absolute">${card.suit}</div>
+                <div class="self-center text-3xl md:text-4xl opacity-50 absolute">${card.suit}</div>
                 <div class="self-end rotate-180">${card.val}${card.suit}</div>
             `;
         }
-        el.style.left = `${i * 30}px`;
+        el.style.left = `${i * xOffset}px`;
         el.style.zIndex = i;
         container.appendChild(el);
     });
-    container.style.width = `${80 + (cards.length - 1) * 30}px`;
+    container.style.width = `${cardBaseWidth + (Math.max(0, cards.length - 1)) * xOffset}px`;
 }
 
 function renderTable() {
@@ -496,7 +551,7 @@ function renderTable() {
             handWrapper.style.opacity = '0.5';
             handWrapper.style.transform = 'scale(0.9)';
         } else if (gameState === 'PLAYING' && index === activeHandIndex) {
-            handWrapper.style.transform = 'scale(1.1)';
+            handWrapper.style.transform = 'scale(1.05)';
         }
 
         const score = calculateHandValue(hand.cards);
@@ -505,7 +560,7 @@ function renderTable() {
         else if (score > 21) scoreText = "Bust!";
         
         const scoreEl = document.createElement('div');
-        scoreEl.className = 'gold-text font-bold mb-2 font-sans bg-black/50 px-2 rounded';
+        scoreEl.className = 'gold-text font-bold mb-1 md:mb-2 font-sans bg-black/50 px-2 rounded text-sm md:text-base';
         scoreEl.innerText = scoreText;
         handWrapper.appendChild(scoreEl);
 
@@ -515,7 +570,7 @@ function renderTable() {
         handWrapper.appendChild(cardContainer);
 
         const betEl = document.createElement('div');
-        betEl.className = 'text-white font-bold mt-2 font-sans bg-green-900/80 px-2 border border-green-500 rounded-full text-sm';
+        betEl.className = 'text-white font-bold mt-1 md:mt-2 font-sans bg-green-900/80 px-2 border border-green-500 rounded-full text-xs md:text-sm';
         betEl.innerText = `$${hand.bet}` + (hand.hasInsurance ? ' (Ins)' : '');
         handWrapper.appendChild(betEl);
 
@@ -530,6 +585,13 @@ function renderTable() {
 
     updateUI();
 }
+
+// Ensure resize events recalculate container dimensions correctly
+window.addEventListener('resize', () => {
+    if (dealerHand.length > 0 || playerHands.length > 0) {
+        renderTable();
+    }
+});
 
 // --- Interactions ---
 
