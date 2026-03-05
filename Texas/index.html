@@ -604,7 +604,10 @@ function nextStage() {
         if (stage === 'PREFLOP') dealCards(3, 'TURN');
         else if (stage === 'FLOP') dealCards(1, 'RIVER');
         else if (stage === 'TURN') dealCards(1, 'SHOWDOWN');
-        else if (stage === 'RIVER') setTimeout(resolveShowdown, 500);
+        else if (stage === 'RIVER') {
+            stage = 'SHOWDOWN';
+            setTimeout(resolveShowdown, 500);
+        }
         return;
     }
 
@@ -749,6 +752,7 @@ function aiTurn() {
 }
 
 function resolveShowdown() {
+    stage = 'SHOWDOWN';
     renderTable(true); // Reveal AI cards
     
     let pEval = evaluate7Cards(playerHole, community);
